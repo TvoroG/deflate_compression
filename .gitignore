@@ -1,0 +1,6 @@
+deflate
+*~
+input
+output
+*.[oa]
+*.h.gch
