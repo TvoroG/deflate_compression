@@ -21,6 +21,7 @@ int main()
 
 void static_deflate(FILE *input, FILE *output, bool isfinal)
 {
+	assert(input != NULL && output != NULL);
 	cyclic_queue *cqdict = new_cyclic_queue(DICT_SIZE_Q);
 	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q);
 
@@ -106,8 +107,30 @@ void byte_flush(FILE *output)
 	}
 }
 
+void get_huffman_code_for_litlen_alphabet(two_bytes literal, 
+										  two_bytes *code, 
+										  size_t *code_len)
+{
+	if (literal >= RANGE1_BEGINNING && literal <= RANGE1_END) {
+		*code = literal + RANGE1_BASE;
+		*code_len = RANGE1_LEN;
+	} else if (literal >= RANGE2_BEGINNING && literal <= RANGE2_END) {
+		*code = literal - RANGE2_BEGINNING + RANGE2_BASE;
+		*code_len = RANGE2_LEN;
+	} else if (literal >= RANGE3_BEGINNING && literal <= RANGE3_END) {
+		*code = literal - RANGE3_BEGINNING + RANGE3_BASE;
+		*code_len = RANGE3_LEN;
+	} else if (literal >= RANGE4_BEGINNING && literal <= RANGE4_END) {
+		*code = literal  - RANGE4_BEGINNING + RANGE4_BASE;
+		*code_len = RANGE4_LEN;
+	} else
+		die("error in getting huffman code");
+}
+
 void die(char *mes)
 {
+	if (mes != NULL)
+		puts(mes);
 	perror("error");
 	exit(1);
 }
