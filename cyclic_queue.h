@@ -11,7 +11,13 @@ typedef struct {
 } cyclic_queue;
 
 cyclic_queue *new_cyclic_queue(size_t);
+void delete_cyclic_queue(cyclic_queue *);
 void add_cyclic_queue(cyclic_queue *, byte);
+void push_back_cyclic_queue(cyclic_queue *, byte *, size_t);
+byte front_cyclic_queue(cyclic_queue *);
+bool isempty_cyclic_queue(cyclic_queue *);
+byte pop_front_cyclic_queue(cyclic_queue *);
+void move_front_cyclic_queue(cyclic_queue *, cyclic_queue *, size_t);
 void search_cyclic_queue(cyclic_queue *, 
 						 cyclic_queue *, 
 						 size_t *, 
