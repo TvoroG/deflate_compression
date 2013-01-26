@@ -13,16 +13,18 @@ int main()
 	if (input == NULL || output == NULL)
 		die(NULL);
 
-	static_deflate(input, output);
+	static_deflate(input, output, true);
 	fclose(input);
 	fclose(output);
 	exit(0);
 }
 
-void static_deflate(FILE *input, FILE *output)
+void static_deflate(FILE *input, FILE *output, bool isfinal)
 {
 	cyclic_queue *cqdict = new_cyclic_queue(DICT_SIZE_Q);
 	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q);
+
+	write_static_header(output, isfinal);
 
 	byte *buff = (byte *) malloc(LEN_MAX);
 	size_t count = fread(buff, EL_SIZE, LEN_MAX, input);
@@ -45,6 +47,8 @@ void static_deflate(FILE *input, FILE *output)
 		if (count)
 			push_back_cyclic_queue(cqbuff, buff, count);
 	}
+	if (isfinal)
+		byte_flush(output);
 
 	free(buff);
 	delete_cyclic_queue(cqbuff);
@@ -55,21 +59,51 @@ void write_literal(FILE *output, byte lit)
 {
 	/* get Huffman code */
 	int i;
-	for (i = N - 1; i >= 0; i--, write_i++) {
+	for (i = N - 1; i >= 0; i--) {
 		if (BitIsSet(lit, i))
 			SetBit(write_b, write_i);
-		if (write_i >= N) {
-			fwrite(&write_b, EL_SIZE, 1, output);
-			write_b = write_i = 0;
-		}
+		next_bit(output);
 	}
 }
 
 void write_pointer(FILE *output, size_t length, size_t offset)
 {
 	/* get Huffman codes for length and offset*/
-	write_literal(output, 0);
-	write_literal(output, 0);
+	write_literal(output, 1);
+	write_literal(output, 1);
+}
+
+void write_static_header(FILE *output, bool isfinal)
+{
+	/* BFINAL */
+	if (isfinal)
+		SetBit(write_b, write_i);
+	next_bit(output);
+	
+	/* BTYPE
+	01 - compressed with fixed Huffman codes */
+	SetBit(write_b, write_i);
+	next_bit(output);
+	next_bit(output);
+}
+
+void next_bit(FILE *output)
+{
+	write_i++;
+	if (write_i >= N) {
+		fwrite(&write_b, EL_SIZE, 1, output);
+		write_b = 0;
+		write_i = 0;
+	}
+}
+
+void byte_flush(FILE *output)
+{
+	if (write_i > 0) {
+		fwrite(&write_b, EL_SIZE, 1, output);
+		write_b = 0;
+		write_i = 0;
+	}
 }
 
 void die(char *mes)
