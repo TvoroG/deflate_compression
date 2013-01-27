@@ -56,36 +56,74 @@ void static_deflate(FILE *input, FILE *output, bool isfinal)
 	delete_cyclic_queue(cqdict);
 }
 
-void write_literal(FILE *output, byte lit)
+void write_literal(FILE *output, two_bytes code)
 {
-	/* get Huffman code */
+	two_bytes huff_code;
+	size_t huff_code_len;
+	get_huffman_code_of_litlen(code, &huff_code, &huff_code_len);
+	write_huffman_code(output, huff_code, huff_code_len);
+}
+
+void write_pointer(FILE *output, size_t length, size_t offset)
+{
+	/* write length huffman code */
+	two_bytes huff_code, len_code = get_code_of_length(length);
+	size_t huff_code_len;
+	get_huffman_code_of_litlen(len_code, &huff_code, &huff_code_len);
+	write_huffman_code(output, huff_code, huff_code_len);
+
+	/* write extra bits of length */
+	byte len_extra_bits;
+	size_t len_bits_num;
+	get_extra_bits_of_length(length, len_code, 
+							 &len_extra_bits, &len_bits_num);
+	if (len_bits_num > 0)
+		write_bits(output, len_extra_bits, len_bits_num);
+	
+	/* write offset code*/
+	byte off_code = get_code_of_offset(offset);
+	write_bits(output, off_code, OFF_CODE_LEN);
+	
+	/* write extra bits of offset */
+	two_bytes off_extra_bits;
+	size_t off_bits_num;
+	get_extra_bits_of_offset(offset, off_code, 
+							 &off_extra_bits, &off_bits_num);
+	if (off_bits_num > 0)
+		write_bits(output, off_extra_bits, off_bits_num);
+}
+
+/* 01 - compressed with fixed Huffman codes */
+void write_static_header(FILE *output, bool isfinal)
+{
+	byte header = 0;
+	/* BFINAL */
+	if (isfinal)
+		SetBit(header, 0);
+	/* BTYPE */
+	SetBit(header, 1);
+	
+	write_bits(output, header, HEADER_LEN);
+}
+
+void write_huffman_code(FILE *output, two_bytes huff_code, size_t num)
+{
 	int i;
-	for (i = N - 1; i >= 0; i--) {
-		if (BitIsSet(lit, i))
+	for (i = num - 1; i >= 0; i--) {
+		if (BitIsSet(huff_code, i))
 			SetBit(write_b, write_i);
 		next_bit(output);
 	}
 }
 
-void write_pointer(FILE *output, size_t length, size_t offset)
+void write_bits(FILE *output, byte bits, size_t bits_num)
 {
-	/* get Huffman codes for length and offset*/
-	write_literal(output, 1);
-	write_literal(output, 1);
-}
-
-void write_static_header(FILE *output, bool isfinal)
-{
-	/* BFINAL */
-	if (isfinal)
-		SetBit(write_b, write_i);
-	next_bit(output);
-	
-	/* BTYPE
-	01 - compressed with fixed Huffman codes */
-	SetBit(write_b, write_i);
-	next_bit(output);
-	next_bit(output);
+	int i;
+	for (i = 0; i < bits_num; i++) {
+		if (BitIsSet(bits, i))
+			SetBit(write_b, write_i);
+		next_bit(output);
+	}
 }
 
 void next_bit(FILE *output)
@@ -107,9 +145,9 @@ void byte_flush(FILE *output)
 	}
 }
 
-void get_huffman_code_for_litlen_alphabet(two_bytes literal, 
-										  two_bytes *code, 
-										  size_t *code_len)
+void get_huffman_code_of_litlen(two_bytes literal, 
+								two_bytes *code, 
+								size_t *code_len)
 {
 	if (literal >= RANGE1_BEGINNING && literal <= RANGE1_END) {
 		*code = literal + RANGE1_BASE;
@@ -125,6 +163,53 @@ void get_huffman_code_for_litlen_alphabet(two_bytes literal,
 		*code_len = RANGE4_LEN;
 	} else
 		die("error in getting huffman code");
+}
+
+two_bytes get_code_of_length(size_t length)
+{
+	assert(length >= 3 && length <= 258);
+	bool found = false;
+	int i;
+	two_bytes code = LEN_CODE_BEGINNING;
+	for (i = 0; i < LEN_CODE_NUM - 1 && !found; i++, code++) {
+		if (length >= length_codes[i].base_len &&
+			length <= length_codes[i + 1].base_len - 1)
+			found = true;
+	}
+	/* if not found then return last one */
+	return found ? code - 1 : LEN_CODE_BEGINNING + LEN_CODE_NUM - 1;
+}
+
+void get_extra_bits_of_length(size_t length,
+							  two_bytes len_code,
+							  byte *extra_bits, 
+							  size_t *bits_num)
+{
+	int i = len_code - LEN_CODE_BEGINNING;
+	*bits_num = length_codes[i].extra_bits_num;
+
+	*extra_bits = length - length_codes[i].base_len;
+}
+
+byte get_code_of_offset(size_t offset)
+{
+	assert(offset >= 1 && offset <= 32768);
+	byte i;
+	for (i = 0; i < OFF_CODE_NUM - 1; i++) {
+		if (offset >= offset_codes[i].base_off &&
+			offset <= offset_codes[i + 1].base_off - 1)
+			break;
+	}
+	return i;
+}
+
+void get_extra_bits_of_offset(size_t offset, 
+							  byte off_code, 
+							  two_bytes *extra_bits, 
+							  size_t *bits_num)
+{
+	*bits_num = offset_codes[off_code].extra_bits_num;
+	*extra_bits = offset - offset_codes[off_code].base_off;
 }
 
 void die(char *mes)
