@@ -1,25 +1,10 @@
-#ifndef DEFLATE_H
-#define DEFLATE_H
+#ifndef STATIC_DEFLATE_H
+#define STATIC_DEFLATE_H
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <assert.h>
-
-#define INPUT "input"
-#define OUTPUT "output"
-#define N 8
-
-#define GetBit(reg, bit)   ((reg) & (1 << (bit)) ? 1 : 0)
-#define SetBit(reg, bit)   ((reg) |= (1<<(bit)))
-#define ClearBit(reg, bit) ((reg) &= (~(1<<(bit))))
-#define BitIsSet(reg, bit) (((reg) & (1 << (bit))) != 0)
-
-#define HEADER_LEN 3
-#define DICT_SIZE_Q 32769 /*32768 + 1*/
-#define LEN_SIZE_Q 259 /*258 + 1*/
-#define DICT_MAX 32768
-#define LEN_MAX 258
-#define EL_SIZE 1 /* element size */
+#include "deflate.h"
+#include "cyclic_queue.h"
 
 #define RANGE1_BEGINNING 0
 #define RANGE1_END 143
@@ -40,7 +25,7 @@
 
 #define LEN_CODE_BEGINNING 257
 #define LEN_CODE_NUM 29 /* size of length_codes array */
-struct {
+static struct {
 	size_t extra_bits_num;
 	size_t base_len;
 } length_codes[] = {
@@ -72,11 +57,12 @@ struct {
 	5, 163,
 	5, 195,
 	5, 227,
-	0, 258};
+	0, 258
+};
 
 #define OFF_CODE_NUM 30 /* size of offset_codes array */
 #define OFF_CODE_LEN 5 /* num of bits in offset code is fixed */
-struct {
+static struct {
 	size_t extra_bits_num;
 	size_t base_off;
 } offset_codes[] = {
@@ -109,26 +95,38 @@ struct {
 	12, 8193,
 	12, 12289,
 	13, 16385,
-	13, 24577};
+	13, 24577
+};
 
-typedef unsigned char byte;
-typedef unsigned short two_bytes;
+extern FILE *input;
+extern FILE *output;
+extern byte write_b;
+extern size_t write_i;
+extern cyclic_queue *cqdict;
+extern cyclic_queue *cqbuff;
 
-void die(char *);
-void print_bytes(int, size_t);
-void static_deflate(FILE *, FILE *, bool);
-void write_literal(FILE *, two_bytes);
-void write_pointer(FILE *, size_t, size_t);
-void write_static_header(FILE *, bool);
-void write_huffman_code(FILE *, two_bytes, size_t);
-void write_bits(FILE *, byte, size_t);
-void next_bit(FILE *);
-void byte_flush(FILE *);
-void get_huffman_code_of_litlen(two_bytes, 
+void static_deflate(bool);
+
+static void write_literal(two_bytes);
+static void write_pointer(size_t, size_t);
+static void write_static_header(bool);
+static void write_huffman_code(two_bytes, size_t);
+static void write_bits(byte, size_t);
+static void next_bit();
+static void byte_flush();
+
+static void get_huffman_code_of_litlen(two_bytes, 
 								two_bytes *, 
 								size_t *);
-two_bytes get_code_of_length(size_t);
-void get_extra_bits_of_length(size_t, two_bytes, byte *, size_t *);
-byte get_code_of_offset(size_t);
-void get_extra_bits_of_offset(size_t, byte, two_bytes *, size_t *);
+static two_bytes get_code_of_length(size_t);
+static void get_extra_bits_of_length(size_t, 
+									 two_bytes, 
+									 byte *, 
+									 size_t *);
+static byte get_code_of_offset(size_t);
+static void get_extra_bits_of_offset(size_t, 
+									 byte, 
+									 two_bytes *, 
+									 size_t *);
+
 #endif

@@ -1,5 +1,5 @@
-#include "cyclic_queue.h"
 #include <assert.h>
+#include "cyclic_queue.h"
 
 cyclic_queue *new_cyclic_queue(size_t len)
 {
