@@ -28,7 +28,7 @@ void static_deflate(bool isfinal)
 		if (count)
 			push_back_cyclic_queue(cqbuff, buff, count);
 	}
-	/* TODO if final then write end-of-block value */
+	/* TODO write end-of-block value */
 	if (isfinal)
 		byte_flush();
 
