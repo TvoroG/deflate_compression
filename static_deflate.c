@@ -28,6 +28,7 @@ void static_deflate(bool isfinal)
 		if (count)
 			push_back_cyclic_queue(cqbuff, buff, count);
 	}
+	/* TODO if final then write end-of-block value */
 	if (isfinal)
 		byte_flush();
 
@@ -127,20 +128,16 @@ static void get_huffman_code_of_litlen(two_bytes literal,
 								two_bytes *code, 
 								size_t *code_len)
 {
-	if (literal >= RANGE1_BEGINNING && literal <= RANGE1_END) {
-		*code = literal + RANGE1_BASE;
-		*code_len = RANGE1_LEN;
-	} else if (literal >= RANGE2_BEGINNING && literal <= RANGE2_END) {
-		*code = literal - RANGE2_BEGINNING + RANGE2_BASE;
-		*code_len = RANGE2_LEN;
-	} else if (literal >= RANGE3_BEGINNING && literal <= RANGE3_END) {
-		*code = literal - RANGE3_BEGINNING + RANGE3_BASE;
-		*code_len = RANGE3_LEN;
-	} else if (literal >= RANGE4_BEGINNING && literal <= RANGE4_END) {
-		*code = literal  - RANGE4_BEGINNING + RANGE4_BASE;
-		*code_len = RANGE4_LEN;
-	} else
-		die("error in getting huffman code");
+	assert(literal >= 0 && literal <= 287);
+	int i;
+	for (i = 0; i < HUFF_CODE_NUM - 1; i++) {
+		if (literal >= huffman_codes[i].base_lit_value &&
+			literal <= huffman_codes[i + 1].base_lit_value - 1) 
+			break;
+	}
+	*code = huffman_codes[i].base_code + 
+		literal - huffman_codes[i].base_lit_value;
+	*code_len = huffman_codes[i].bits_num;
 }
 
 static two_bytes get_code_of_length(size_t length)

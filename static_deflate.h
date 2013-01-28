@@ -6,22 +6,17 @@
 #include "deflate.h"
 #include "cyclic_queue.h"
 
-#define RANGE1_BEGINNING 0
-#define RANGE1_END 143
-#define RANGE1_BASE 48 /* 00110000 - 10111111 */
-#define RANGE1_LEN 8
-#define RANGE2_BEGINNING 144
-#define RANGE2_END 255
-#define RANGE2_BASE 400 /* 110010000 - 111111111 */
-#define RANGE2_LEN 9
-#define RANGE3_BEGINNING 256
-#define RANGE3_END 279
-#define RANGE3_BASE 0 /* 0000000 - 0010111 */
-#define RANGE3_LEN 7
-#define RANGE4_BEGINNING 280
-#define RANGE4_END 287
-#define RANGE4_BASE 192 /*11000000 - 11000111 */
-#define RANGE4_LEN 8
+#define HUFF_CODE_NUM 4
+static struct {
+	size_t bits_num;
+	two_bytes base_lit_value;
+	two_bytes base_code;	
+} huffman_codes[] = {
+	8, 0, 48,
+	9, 144, 400,
+	7, 256, 0,
+	8, 280, 192
+};
 
 #define LEN_CODE_BEGINNING 257
 #define LEN_CODE_NUM 29 /* size of length_codes array */
