@@ -1,3 +1,7 @@
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "deflate.h"
 #include "static_deflate.h"
 #include "cyclic_queue.h"
@@ -19,7 +23,10 @@ int main()
 	cqdict = new_cyclic_queue(DICT_SIZE_Q);
 	cqbuff = new_cyclic_queue(LEN_SIZE_Q);
 
-	static_deflate(true);
+	struct stat intput_stat;
+	fstat(input, &input_stat);
+	dynamic_deflate(input_stat->st_size, true);
+/*	static_deflate(true);*/
 
 	delete_cyclic_queue(cqbuff);
 	delete_cyclic_queue(cqdict);
