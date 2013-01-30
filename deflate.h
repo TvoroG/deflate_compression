@@ -19,6 +19,8 @@
 #define DICT_MAX 32768
 #define LEN_MAX 258
 #define EL_SIZE 1 /* element size */
+#define MAX_LITLEN_CODE 285
+#define MAX_OFF_CODE 29
 
 typedef unsigned char byte;
 typedef unsigned short two_bytes;
