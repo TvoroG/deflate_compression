@@ -7,7 +7,7 @@ void dynamic_deflate(off_t block_size, bool isfinal)
 {
 	off_t res_size = block_size + block_size / 3;
 	two_bytes inter_res[res_size];
-	memset(inter_res, 0, res_size * 2);
+	memset(inter_res, 0, res_size * sizeof(two_bytes));
 
 	off_t real_size = LZ77(inter_res, block_size);
 }
