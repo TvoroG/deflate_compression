@@ -20,7 +20,8 @@ extern cyclic_queue *cqdict;
 extern cyclic_queue *cqbuff;
 
 void dynamic_deflate(off_t, bool);
-off_t LZ77(two_bytes [], off_t);
+size_t LZ77(two_bytes [], size_t);
+void generate_huffman_codes(two_bytes [], size_t);
 size_t write_pointer(two_bytes [],
 					 size_t, 
 					 size_t, 
