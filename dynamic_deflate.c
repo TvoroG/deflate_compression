@@ -1,7 +1,6 @@
 #include <string.h>
 #include "dynamic_deflate.h"
 #include "alphabets.h"
-#include "huffman_tree.h"
 
 
 void dynamic_deflate(off_t block_size, bool isfinal)
@@ -48,35 +47,35 @@ size_t LZ77(two_bytes inter_res[], size_t block_size)
 void generate_huffman_codes(two_bytes inter_res[], size_t real_size)
 {
 	int j;
-	huffman_tree litlen_codes_num[MAX_LITLEN_CODE + 1];
-	for (j = 0; j <= MAX_LITLEN_CODE; j++) {
-		litlen_codes_num[j].probability = 0;
-		litlen_codes_num[j].code = j;
-		litlen_codes_num[j].left = NULL;
-		litlen_codes_num[j].right = NULL;
-	}
+	huffman_tree *litlen_codes_num[MAX_LITLEN_CODE + 1];
+	for (j = 0; j <= MAX_LITLEN_CODE; j++)
+		litlen_codes_num[j] = new_huffman_tree(0, j, NULL, NULL);
 
-	huffman_tree off_codes_num[MAX_OFF_CODE + 1];
-	for (j = 0; j <= MAX_OFF_CODE; j++) {
-		off_codes_num[j].probability = 0;
-		off_codes_num[j].code = j;
-		off_codes_num[j].left = NULL;
-		off_codes_num[j].right = NULL;
-	}
+	huffman_tree *off_codes_num[MAX_OFF_CODE + 1];
+	for (j = 0; j <= MAX_OFF_CODE; j++)
+		off_codes_num[j] = new_huffman_tree(0, j, NULL, NULL);
 
-	int i;
+	size_t i;
+	size_t litlen_size = 0, off_size = 0;
 	for (i = 0; i < real_size; ) {
 		if (inter_res[i] <= 255) {
-			litlen_codes_num[inter_res[i]].probability++;
-			i++;
+			if (litlen_codes_num[inter_res[i]]->probability == 0)
+				litlen_size++;
+			litlen_codes_num[inter_res[i++]]->probability++;
 		} else {
-			litlen_codes_num[inter_res[i++]].probability++;
+			if (litlen_codes_num[inter_res[i]]->probability == 0)
+				litlen_size++;
+			litlen_codes_num[inter_res[i++]]->probability++;
+
 			if (inter_res[i] > 0)
 				i += 2;
 			else
 				i += 1;
 
-			off_codes_num[inter_res[i++]].probability++;
+			if (off_codes_num[inter_res[i]]->probability == 0)
+				off_size++;
+			off_codes_num[inter_res[i++]]->probability++;
+
 			if (inter_res[i] > 0)
 				i += 2;
 			else
@@ -85,13 +84,45 @@ void generate_huffman_codes(two_bytes inter_res[], size_t real_size)
 	}
 
 	qsort(litlen_codes_num, MAX_LITLEN_CODE + 1, 
-		  sizeof(huffman_tree), compare_huffman_tree);
+		  sizeof(huffman_tree *), compare_huffman_tree);
 	qsort(off_codes_num, MAX_OFF_CODE + 1, 
-		  sizeof(huffman_tree), compare_huffman_tree);
+		  sizeof(huffman_tree *), compare_huffman_tree);
 
-	for (i = 0; i <= MAX_OFF_CODE; i++)
-		printf("%d, ", off_codes_num[i].code);
+	build_tree(litlen_codes_num, litlen_size);
+	count_len_huffman_tree(litlen_codes_num[0], 0);
+
+	build_tree(off_codes_num, off_size);
+	count_len_huffman_tree(off_codes_num[0], 0);
+
+	print_huffman_tree(litlen_codes_num[0]);
+	printf("\n\n");
+	print_huffman_tree(off_codes_num[0]);
 	printf("\n");
+}
+
+void build_tree(huffman_tree *codes_num[], size_t size)
+{
+	int i;
+	prob_t prob;
+	huffman_tree *tree;
+	for (i = size - 1; i > 0; i--) {
+		prob = codes_num[i]->probability + codes_num[i - 1]->probability;
+		tree = new_huffman_tree(prob, 0,
+								codes_num[i - 1], 
+								codes_num[i]);
+		sort_in_tree(codes_num, tree, i);
+	}
+}
+
+void sort_in_tree(huffman_tree *codes_num[], huffman_tree *tree, int i)
+{
+	int j = i - 2;
+	while (j >= 0 && 
+		   codes_num[j]->probability < tree->probability) {
+		codes_num[j + 1] = codes_num[j];
+		j--;
+	}
+	codes_num[j + 1] = tree;
 }
 
 size_t write_pointer(two_bytes inter_res[], 

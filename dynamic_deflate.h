@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include "deflate.h"
 #include "cyclic_queue.h"
+#include "huffman_tree.h"
 
 #define FIRST_LEN_EXTRA_BIT 9
 #define LAST_LEN_EXTRA_BIT 13
@@ -22,6 +23,8 @@ extern cyclic_queue *cqbuff;
 void dynamic_deflate(off_t, bool);
 size_t LZ77(two_bytes [], size_t);
 void generate_huffman_codes(two_bytes [], size_t);
+void build_tree(huffman_tree *[], size_t);
+void sort_in_tree(huffman_tree *[], huffman_tree *, int);
 size_t write_pointer(two_bytes [],
 					 size_t, 
 					 size_t, 
