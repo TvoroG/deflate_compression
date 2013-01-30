@@ -7,6 +7,7 @@
 #define SetBit(reg, bit)   ((reg) |= (1<<(bit)))
 #define ClearBit(reg, bit) ((reg) &= (~(1<<(bit))))
 #define BitIsSet(reg, bit) (((reg) & (1 << (bit))) != 0)
+#define Min(a, b) ((a) >= (b) ? (b) : (a))
 
 #define N 8
 #define INPUT "input"
