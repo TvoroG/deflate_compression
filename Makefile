@@ -1,5 +1,5 @@
-all: deflate.o static_deflate.o dynamic_deflate.o alphabets.o cyclic_queue.o
-	cc deflate.o static_deflate.o dynamic_deflate.o alphabets.o cyclic_queue.o -o deflate
+all: deflate.o static_deflate.o dynamic_deflate.o alphabets.o cyclic_queue.o huffman_tree.o
+	cc deflate.o static_deflate.o dynamic_deflate.o alphabets.o cyclic_queue.o huffman_tree.o -o deflate
 
 deflate.o: deflate.c deflate.h
 	cc -c deflate.h deflate.c
@@ -15,6 +15,9 @@ alphabets.o: alphabets.c alphabets.h
 
 cyclic_queue.o: cyclic_queue.h cyclic_queue.c
 	cc -c cyclic_queue.c cyclic_queue.h
+
+huffman_tree.o: huffman_tree.c huffman_tree.h
+	cc -c huffman_tree.c huffman_tree.h
 
 clean:
 	rm *.o deflate
