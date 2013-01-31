@@ -8,6 +8,7 @@
 #define ClearBit(reg, bit) ((reg) &= (~(1<<(bit))))
 #define BitIsSet(reg, bit) (((reg) & (1 << (bit))) != 0)
 #define Min(a, b) ((a) >= (b) ? (b) : (a))
+#define Max(a, b) ((a) >= (b) ? (a) : (b))
 
 #define N 8
 #define INPUT "input"
@@ -21,6 +22,7 @@
 #define EL_SIZE 1 /* element size */
 #define MAX_LITLEN_CODE 285
 #define MAX_OFF_CODE 29
+#define MAX_LITERAL 255
 
 typedef unsigned char byte;
 typedef unsigned short two_bytes;
