@@ -49,5 +49,4 @@ void print_bytes(int b, size_t size)
 	int i;
 	for (i = size * N - 1; i >= 0; i--)
 		printf("%d", GetBit(b, i));
-	printf("\n");
 }
