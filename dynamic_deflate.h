@@ -8,13 +8,6 @@
 #include "cyclic_queue.h"
 #include "huffman_tree.h"
 
-#define FIRST_LEN_EXTRA_BIT 9
-#define LAST_LEN_EXTRA_BIT 13
-#define LAST1_OFF_BIT 15
-#define FIRST2_OFF_BIT 0
-#define LAST2_OFF_BIT 2
-#define LAST_OFF_EXTRA_BIT 15
-
 extern FILE *input;
 extern FILE *output;
 extern cyclic_queue *cqdict;
@@ -22,14 +15,32 @@ extern cyclic_queue *cqbuff;
 
 void dynamic_deflate(off_t, bool);
 size_t LZ77(two_bytes [], size_t);
-void generate_huffman_codes(two_bytes [], size_t);
+void generate_huffman_codes(huffman_tree *tree[],
+							size_t array_size,
+							size_t tree_size);
+void init_tree(huffman_tree *[], size_t);
+void count_probability_for_litlen(huffman_tree *tree[], 
+								  two_bytes inter_res[], 
+								  size_t real_size, 
+								  size_t *tree_size,
+								  two_bytes *max_code);
+void count_probability_for_offset(huffman_tree *tree[], 
+								  two_bytes inter_res[], 
+								  size_t real_size, 
+								  size_t *tree_size, 
+								  two_bytes *max_code);
+
+
+void find_numerical_values(size_t bl_count[], 
+						   size_t size, 
+						   size_t next_code[]);
+void assign_numerical_values(huffman_tree *tree, 
+							 size_t next_code[]);
 void build_tree(huffman_tree *[], size_t);
+void destroy_tree(huffman_tree *[], huffman_tree *);
 void sort_in_tree(huffman_tree *[], huffman_tree *, int);
 size_t write_pointer(two_bytes [],
 					 size_t, 
 					 size_t, 
 					 size_t);
-void write_len_extra_bits(two_bytes [], size_t, two_bytes);
-void write_offset(two_bytes [], size_t, byte);
-void write_off_extra_bits(two_bytes [], size_t, two_bytes);
 #endif

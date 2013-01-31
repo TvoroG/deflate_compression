@@ -2,7 +2,6 @@
 #include "dynamic_deflate.h"
 #include "alphabets.h"
 
-
 void dynamic_deflate(off_t block_size, bool isfinal)
 {
 	size_t res_size = block_size + (block_size / 3) * 12;
@@ -10,8 +9,41 @@ void dynamic_deflate(off_t block_size, bool isfinal)
 	memset(inter_res, 0, res_size * sizeof(two_bytes));
 
 	size_t real_size = LZ77(inter_res, block_size);
-	generate_huffman_codes(inter_res, real_size);
+
+	huffman_tree *litlen_tree[MAX_LITLEN_CODE + 1];
+	huffman_tree *off_tree[MAX_OFF_CODE + 1];
+	init_tree(litlen_tree, MAX_LITLEN_CODE + 1);
+	init_tree(off_tree, MAX_OFF_CODE + 1);
+	
+	size_t litlen_size, off_size;
+	two_bytes max_litlen_code, max_off_code;
+	count_probability_for_litlen(litlen_tree, 
+								 inter_res, 
+								 real_size,
+								 &litlen_size, 
+								 &max_litlen_code);
+	count_probability_for_offset(off_tree, 
+								 inter_res, 
+								 real_size, 
+								 &off_size, 
+								 &max_off_code);
+
+
+	generate_huffman_codes(litlen_tree, 
+						   MAX_LITLEN_CODE + 1, 
+						   litlen_size);
+	generate_huffman_codes(off_tree, 
+						   MAX_OFF_CODE + 1, 
+						   off_size);
+
+	print_huffman_tree(litlen_tree[0]);
+	printf("\n");
+
+	destroy_tree(litlen_tree, litlen_tree[0]);
+	destroy_tree(off_tree, off_tree[0]);
 }
+
+
 
 size_t LZ77(two_bytes inter_res[], size_t block_size)
 {
@@ -44,60 +76,102 @@ size_t LZ77(two_bytes inter_res[], size_t block_size)
 	return inter_res_i;
 }
 
-void generate_huffman_codes(two_bytes inter_res[], size_t real_size)
+void count_probability_for_litlen(huffman_tree *tree[], 
+								  two_bytes inter_res[], 
+								  size_t real_size, 
+								  size_t *tree_size,
+								  two_bytes *max_code)
 {
-	int j;
-	huffman_tree *litlen_codes_num[MAX_LITLEN_CODE + 1];
-	for (j = 0; j <= MAX_LITLEN_CODE; j++)
-		litlen_codes_num[j] = new_huffman_tree(0, j, NULL, NULL);
-
-	huffman_tree *off_codes_num[MAX_OFF_CODE + 1];
-	for (j = 0; j <= MAX_OFF_CODE; j++)
-		off_codes_num[j] = new_huffman_tree(0, j, NULL, NULL);
-
 	size_t i;
-	size_t litlen_size = 0, off_size = 0;
+	*max_code = 0;
+	*tree_size = 0;
 	for (i = 0; i < real_size; ) {
-		if (inter_res[i] <= 255) {
-			if (litlen_codes_num[inter_res[i]]->probability == 0)
-				litlen_size++;
-			litlen_codes_num[inter_res[i++]]->probability++;
+		if (inter_res[i] <= MAX_LITERAL) {
+			if (tree[inter_res[i]]->probability == 0)
+				(*tree_size)++;
+			*max_code = Max(*max_code, inter_res[i]);
+			tree[inter_res[i++]]->probability++;
 		} else {
-			if (litlen_codes_num[inter_res[i]]->probability == 0)
-				litlen_size++;
-			litlen_codes_num[inter_res[i++]]->probability++;
-
+			if (tree[inter_res[i]]->probability == 0)
+				(*tree_size)++;
+			*max_code = Max(*max_code, inter_res[i]);
+			tree[inter_res[i++]]->probability++;
+			
+			/* read extra bits len of length*/
 			if (inter_res[i] > 0)
-				i += 2;
+				i += 3;
 			else
-				i += 1;
+				i += 2;
 
-			if (off_codes_num[inter_res[i]]->probability == 0)
-				off_size++;
-			off_codes_num[inter_res[i++]]->probability++;
-
+			/* read extra bits len of offset*/
 			if (inter_res[i] > 0)
 				i += 2;
 			else
 				i += 1;
 		}
 	}
+}
 
-	qsort(litlen_codes_num, MAX_LITLEN_CODE + 1, 
-		  sizeof(huffman_tree *), compare_huffman_tree);
-	qsort(off_codes_num, MAX_OFF_CODE + 1, 
-		  sizeof(huffman_tree *), compare_huffman_tree);
+void count_probability_for_offset(huffman_tree *tree[], 
+								  two_bytes inter_res[], 
+								  size_t real_size, 
+								  size_t *tree_size, 
+								  two_bytes *max_code)
+{
+	size_t i;
+	*max_code = 0;
+	*tree_size = 0;
+	for (i = 0; i < real_size; ) {
+		if (inter_res[i] <= MAX_LITERAL) {
+			i++;
+		} else {
+			/* not read lenght code */
+			i++;
+			/* read extra bits len of length*/
+			if (inter_res[i] > 0)
+				i += 2;
+			else
+				i += 1;
 
-	build_tree(litlen_codes_num, litlen_size);
-	count_len_huffman_tree(litlen_codes_num[0], 0);
+			if (tree[inter_res[i]]->probability == 0)
+				(*tree_size)++;
+			*max_code = Max(*max_code, inter_res[i]);
+			tree[inter_res[i++]]->probability++;
 
-	build_tree(off_codes_num, off_size);
-	count_len_huffman_tree(off_codes_num[0], 0);
+			/* read extra bits len of offset*/
+			if (inter_res[i] > 0)
+				i += 2;
+			else
+				i += 1;
+		}
+	}
+}
 
-	print_huffman_tree(litlen_codes_num[0]);
-	printf("\n\n");
-	print_huffman_tree(off_codes_num[0]);
-	printf("\n");
+void generate_huffman_codes(huffman_tree *tree[],
+							size_t array_size,
+							size_t tree_size)
+{
+	qsort(tree, array_size, sizeof(huffman_tree *),compare_huffman_tree);
+	
+	size_t bl_count[tree_size + 1];
+	memset(bl_count, 0, sizeof(size_t) * (tree_size + 1));
+
+	build_tree(tree, tree_size + 1);
+	if (tree_size == 1)
+		count_len_huffman_tree(tree[0], bl_count, 1);
+	else
+		count_len_huffman_tree(tree[0], bl_count, 0);
+
+	size_t next_code[tree_size + 1];
+	find_numerical_values(bl_count, tree_size + 1, next_code);
+	assign_numerical_values(tree[0], next_code);
+}
+
+void init_tree(huffman_tree *tree[], size_t size)
+{
+	int j;
+	for (j = 0; j < size; j++)
+		tree[j] = new_huffman_tree(0, j, NULL, NULL);
 }
 
 void build_tree(huffman_tree *codes_num[], size_t size)
@@ -114,6 +188,16 @@ void build_tree(huffman_tree *codes_num[], size_t size)
 	}
 }
 
+void destroy_tree(huffman_tree *tree[], huffman_tree *cur)
+{
+	if (cur->left == NULL && cur->right == NULL) {
+		tree[cur->code] = cur;
+	} else {
+		destroy_tree(tree, cur->left);
+		destroy_tree(tree, cur->right);
+	}
+}
+
 void sort_in_tree(huffman_tree *codes_num[], huffman_tree *tree, int i)
 {
 	int j = i - 2;
@@ -123,6 +207,33 @@ void sort_in_tree(huffman_tree *codes_num[], huffman_tree *tree, int i)
 		j--;
 	}
 	codes_num[j + 1] = tree;
+}
+
+void find_numerical_values(size_t bl_count[], 
+						   size_t size, 
+						   size_t next_code[])
+{
+	size_t bits, code = 0;
+    bl_count[0] = 0;
+    for (bits = 1; bits <= size; bits++) {
+        code = (code + bl_count[bits-1]) << 1;
+        next_code[bits] = code;
+    }
+}
+
+void assign_numerical_values(huffman_tree *tree, size_t next_code[])
+{
+	if (tree->left == NULL && tree->right == NULL) {
+		size_t len;
+		len = tree->len;
+		if (len != 0) {
+			tree->huff_code = next_code[len];
+			next_code[len]++;
+		}
+	} else {
+		assign_numerical_values(tree->left, next_code);
+		assign_numerical_values(tree->right, next_code);
+	}
 }
 
 size_t write_pointer(two_bytes inter_res[], 
@@ -162,40 +273,3 @@ size_t write_pointer(two_bytes inter_res[],
 
 	return i;
 }
-
-void write_len_extra_bits(two_bytes inter_res[], 
-						  size_t i, 
-						  two_bytes bits)
-{
-	int j, b = FIRST_LEN_EXTRA_BIT;
-	for (j = 0; b <= LAST_LEN_EXTRA_BIT; b++, j++)
-		if (BitIsSet(bits, j))
-			SetBit(inter_res[i], b);
-}
-
-void write_offset(two_bytes inter_res[], 
-				  size_t i, 
-				  byte bits)
-{
-	int j, b = LAST_LEN_EXTRA_BIT + 1;
-	for (j = 0; b <= LAST1_OFF_BIT; b++, j++)
-		if (BitIsSet(bits, j))
-			SetBit(inter_res[i], b);
-
-	i++;
-	b = FIRST2_OFF_BIT;
-	for ( ; b <= LAST2_OFF_BIT; b++, j++)
-		if (BitIsSet(bits, j))
-			SetBit(inter_res[i], b);
-}
-
-void write_off_extra_bits(two_bytes inter_res[], 
-						  size_t i, 
-						  two_bytes bits)
-{
-	int j, b = LAST2_OFF_BIT + 1;
-	for (j = 0; b <= LAST_OFF_EXTRA_BIT; b++, j++)
-	    if (BitIsSet(bits, j))
-			SetBit(inter_res[i], b);
-}
-
