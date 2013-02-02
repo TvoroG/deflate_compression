@@ -80,6 +80,14 @@ static struct {
 	13, 24577
 };
 
+#define CODE_LENGTH_ORDER_SIZE 19
+extern size_t code_length_order[];
+
+#define REPEAT_17_BEG 3
+#define REPEAT_17_END 10
+#define REPEAT_18_BEG 11
+#define REPEAT_18_END 138
+
 two_bytes get_code_of_length(size_t);
 byte get_code_of_offset(size_t);
 
