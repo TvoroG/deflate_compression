@@ -23,6 +23,7 @@
 #define MAX_LITLEN_CODE 285
 #define MAX_OFF_CODE 29
 #define MAX_LITERAL 255
+#define CODE_LEN_ALPHABET_SIZE 19 
 
 typedef unsigned char byte;
 typedef unsigned short two_bytes;
