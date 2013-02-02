@@ -7,7 +7,7 @@ typedef struct _huffman_tree {
 	prob_t probability;
 	two_bytes code;
 	size_t len;
-	two_bytes huff_code;
+	size_t huff_code;
 	struct _huffman_tree *left;
 	struct _huffman_tree *right;
 } huffman_tree;

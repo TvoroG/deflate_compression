@@ -40,12 +40,12 @@ int compare_huffman_tree(const void *tree1, const void *tree2)
 void print_huffman_tree(huffman_tree *tree)
 {
 	if (tree->left == NULL) {
-		printf("len = %d, code = ", tree->len);
+		printf("code = %d, len = %d, prob = %d, huff_code = ", 
+			   tree->code, tree->len, tree->probability);
 		print_bytes(tree->huff_code, sizeof(two_bytes));
-		printf(";");
+		printf("\n");
 	} else {
 		print_huffman_tree(tree->left);
-		printf("code = %d, len = %d; ", tree->code, tree->len);
 		print_huffman_tree(tree->right);
 	}
 }
