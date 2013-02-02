@@ -119,5 +119,5 @@ void print_cyclic_queue(cyclic_queue *cq)
 	int i;
 	for (i = 0; i < cq->len; i++)
 		printf("%c, ", cq->queue[i]);
-	printf("\ns = %d, e = %d\n", cq->s, cq->e);
+	printf("\ns = %d, e = %d, val = %c\n", cq->s, cq->e, cq->queue[cq->s]);
 }
