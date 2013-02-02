@@ -45,9 +45,21 @@ void destroy_tree(huffman_tree *[], huffman_tree *);
 void sort_in_tree(huffman_tree *[], huffman_tree *, int);
 void write_HLIT_HDIST(two_bytes max_litlen_code, two_bytes max_off_code);
 void write_dynamic_header(bool isfinal);
-void write_HCLEN(huffman_tree *length_tree[]);
+size_t write_HCLEN(huffman_tree *length_tree[]);
+void write_code_length_for_code_length(huffman_tree *length_tree[], 
+									   size_t HCLEN);
+void write_code_length_for_alphabet(huffman_tree *tree[],
+									huffman_tree *length_tree[],
+									size_t max_litlen_code);
 void write_bits(two_bytes bits, size_t bits_num);
+void write_huffman_code(size_t huff_code, size_t num);
+void write_compressed_data(two_bytes inter_res[], 
+						   size_t real_size, 
+						   huffman_tree *litlen_tree[], 
+						   huffman_tree *off_tree[]);
+void write_end_of_data();
 void next_bit();
+void byte_flush();
 void count_probability_for_code_length(huffman_tree *litlen_tree[],
 									   size_t,
 									   huffman_tree *off_tree[],
