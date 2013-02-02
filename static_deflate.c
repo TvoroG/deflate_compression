@@ -25,6 +25,9 @@ void static_deflate(bool isfinal)
 			move_front_cyclic_queue(cqbuff, cqdict, length);
 		}
 		
+		if (length == 0)
+			length = 1;
+
 		count = fread(buff, EL_SIZE, length, input);
 		if (count)
 			push_back_cyclic_queue(cqbuff, buff, count);
