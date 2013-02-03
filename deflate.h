@@ -28,6 +28,8 @@
 typedef unsigned char byte;
 typedef unsigned short two_bytes;
 
+void get_args(int argc, char **argv);
+void get_files_name();
 void die(char *);
 void print_bytes(int, size_t);
 
