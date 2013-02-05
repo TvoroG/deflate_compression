@@ -70,7 +70,7 @@ void dynamic_deflate(off_t block_size, bool isfinal)
 		byte_flush();
 }
 
-void byte_flush()
+static void byte_flush()
 {
 	if (write_i > 0) {
 		fwrite(&write_b, EL_SIZE, 1, output);
@@ -156,7 +156,7 @@ size_t write_HCLEN(huffman_tree *length_tree[])
 	return HCLEN;
 }
 
-void write_bits(two_bytes bits, size_t bits_num)
+static void write_bits(two_bytes bits, size_t bits_num)
 {
 	int i;
 	for (i = 0; i < bits_num; i++) {
@@ -166,7 +166,7 @@ void write_bits(two_bytes bits, size_t bits_num)
 	}
 }
 
-void write_huffman_code(size_t huff_code, size_t num)
+static void write_huffman_code(size_t huff_code, size_t num)
 {
 	int i;
 	for (i = num - 1; i >= 0; i--) {
@@ -176,7 +176,7 @@ void write_huffman_code(size_t huff_code, size_t num)
 	}
 }
 
-void next_bit()
+static void next_bit()
 {
 	write_i++;
 	if (write_i >= N) {
@@ -508,7 +508,7 @@ void assign_numerical_values(huffman_tree *tree[],
 	}
 }
 
-size_t write_pointer(two_bytes inter_res[], 
+static size_t write_pointer(two_bytes inter_res[], 
 					 size_t i, 
 					 size_t length, 
 					 size_t offset)
