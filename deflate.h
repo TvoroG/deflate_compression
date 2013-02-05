@@ -28,6 +28,11 @@
 typedef unsigned char byte;
 typedef unsigned short two_bytes;
 
+extern FILE *input;
+extern FILE *output;
+extern byte write_b;
+extern size_t write_i;
+
 void get_args(int argc, char **argv);
 void get_files_name();
 void die(char *);

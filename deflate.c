@@ -41,8 +41,9 @@ int main(int argc, char **argv)
 	if (global_args.isdecompress) {
 		die("decompressor is not implemented yet");
 	} else {
-		dynamic_deflate(input_stat.st_size, true);
-		/*static_deflate(true);*/
+//		dynamic_deflate(input_stat.st_size, true);
+//		static_deflate(true);
+		nocompress_deflate(input_stat.st_size, true);
 	}
 
 	delete_cyclic_queue(cqbuff);
