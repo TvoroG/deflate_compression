@@ -1,6 +1,7 @@
 #include <string.h>
 #include "dynamic_deflate.h"
 #include "alphabets.h"
+#include "writer.h"
 
 void dynamic_deflate(off_t block_size, bool isfinal)
 {
@@ -68,15 +69,6 @@ void dynamic_deflate(off_t block_size, bool isfinal)
 	write_compressed_data(inter_res, real_size, litlen_tree, off_tree);
 	if (isfinal)
 		byte_flush();
-}
-
-static void byte_flush()
-{
-	if (write_i > 0) {
-		fwrite(&write_b, EL_SIZE, 1, output);
-		write_b = 0;
-		write_i = 0;
-	}
 }
 
 void write_compressed_data(two_bytes inter_res[], 
@@ -154,36 +146,6 @@ size_t write_HCLEN(huffman_tree *length_tree[])
 	size_t HCLEN = num + 1;
 	write_bits(HCLEN - 4, 4);
 	return HCLEN;
-}
-
-static void write_bits(two_bytes bits, size_t bits_num)
-{
-	int i;
-	for (i = 0; i < bits_num; i++) {
-		if (BitIsSet(bits, i))
-			SetBit(write_b, write_i);
-		next_bit();
-	}
-}
-
-static void write_huffman_code(size_t huff_code, size_t num)
-{
-	int i;
-	for (i = num - 1; i >= 0; i--) {
-		if (BitIsSet(huff_code, i))
-			SetBit(write_b, write_i);
-		next_bit();
-	}
-}
-
-static void next_bit()
-{
-	write_i++;
-	if (write_i >= N) {
-		fwrite(&write_b, EL_SIZE, 1, output);
-		write_b = 0;
-		write_i = 0;
-	}
 }
 
 void write_code_length_for_alphabet(huffman_tree *tree[],
@@ -509,9 +471,9 @@ void assign_numerical_values(huffman_tree *tree[],
 }
 
 static size_t write_pointer(two_bytes inter_res[], 
-					 size_t i, 
-					 size_t length, 
-					 size_t offset)
+							size_t i, 
+							size_t length, 
+							size_t offset)
 {
 	/* write length code */
 	two_bytes len_code = get_code_of_length(length);

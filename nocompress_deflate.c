@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "nocompress_deflate.h"
+#include "writer.h"
 
 void nocompress_deflate(off_t block_size, bool isfinal)
 {
@@ -38,34 +39,5 @@ static void write_data(off_t block_size)
 		last_count = fread(buff, EL_SIZE, to_read, input);
 		fwrite(buff, EL_SIZE, last_count, output);
 		count += last_count;
-	}
-}
-
-static void write_bits(two_bytes bits, size_t bits_num)
-{
-	int i;
-	for (i = 0; i < bits_num; i++) {
-		if (BitIsSet(bits, i))
-			SetBit(write_b, write_i);
-		next_bit();
-	}
-}
-
-static void next_bit()
-{
-	write_i++;
-	if (write_i >= N) {
-		fwrite(&write_b, EL_SIZE, 1, output);
-		write_b = 0;
-		write_i = 0;
-	}
-}
-
-static void byte_flush()
-{
-	if (write_i > 0) {
-		fwrite(&write_b, EL_SIZE, 1, output);
-		write_b = 0;
-		write_i = 0;
 	}
 }

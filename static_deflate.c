@@ -3,6 +3,7 @@
 #include "deflate.h"
 #include "alphabets.h"
 #include "cyclic_queue.h"
+#include "writer.h"
 
 void static_deflate(bool isfinal)
 {
@@ -87,59 +88,4 @@ static void write_static_header(bool isfinal)
 	SetBit(header, 1);
 	
 	write_bits(header, HEADER_LEN);
-}
-
-static void write_huffman_code(two_bytes huff_code, size_t num)
-{
-	int i;
-	for (i = num - 1; i >= 0; i--) {
-		if (BitIsSet(huff_code, i))
-			SetBit(write_b, write_i);
-		next_bit();
-	}
-}
-
-static void write_bits(two_bytes bits, size_t bits_num)
-{
-	int i;
-	for (i = 0; i < bits_num; i++) {
-		if (BitIsSet(bits, i))
-			SetBit(write_b, write_i);
-		next_bit();
-	}
-}
-
-static void next_bit()
-{
-	write_i++;
-	if (write_i >= N) {
-		fwrite(&write_b, EL_SIZE, 1, output);
-		write_b = 0;
-		write_i = 0;
-	}
-}
-
-static void byte_flush()
-{
-	if (write_i > 0) {
-		fwrite(&write_b, EL_SIZE, 1, output);
-		write_b = 0;
-		write_i = 0;
-	}
-}
-
-static void get_huffman_code_of_litlen(two_bytes literal, 
-								two_bytes *code, 
-								size_t *code_len)
-{
-	assert(literal >= 0 && literal <= 287);
-	int i;
-	for (i = 0; i < HUFF_CODE_NUM - 1; i++) {
-		if (literal >= huffman_codes[i].base_lit_value &&
-			literal <= huffman_codes[i + 1].base_lit_value - 1) 
-			break;
-	}
-	*code = huffman_codes[i].base_code + 
-		literal - huffman_codes[i].base_lit_value;
-	*code_len = huffman_codes[i].bits_num;
 }

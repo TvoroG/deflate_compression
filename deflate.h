@@ -14,6 +14,7 @@
 #define INPUT "input"
 #define OUTPUT "output"
 
+#define BLOCK_SIZE 50000
 #define HEADER_LEN 3
 #define DICT_SIZE_Q 32769 /*32768 + 1*/
 #define LEN_SIZE_Q 259 /*258 + 1*/
@@ -28,10 +29,17 @@
 typedef unsigned char byte;
 typedef unsigned short two_bytes;
 
+typedef struct {
+	char *input_name;
+	char *output_name;
+	FILE *input;
+	FILE *output;
+	long offset;
+	size_t size;
+} io;
+
 extern FILE *input;
 extern FILE *output;
-extern byte write_b;
-extern size_t write_i;
 
 void get_args(int argc, char **argv);
 void get_files_name();

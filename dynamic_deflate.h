@@ -12,8 +12,6 @@ extern FILE *input;
 extern FILE *output;
 extern cyclic_queue *cqdict;
 extern cyclic_queue *cqbuff;
-extern byte write_b;
-extern size_t write_i;
 
 void dynamic_deflate(off_t, bool);
 size_t LZ77(two_bytes [], size_t);
@@ -51,14 +49,10 @@ void write_code_length_for_code_length(huffman_tree *length_tree[],
 void write_code_length_for_alphabet(huffman_tree *tree[],
 									huffman_tree *length_tree[],
 									size_t max_litlen_code);
-static void write_bits(two_bytes bits, size_t bits_num);
-static void write_huffman_code(size_t huff_code, size_t num);
 void write_compressed_data(two_bytes inter_res[], 
 						   size_t real_size, 
 						   huffman_tree *litlen_tree[], 
 						   huffman_tree *off_tree[]);
-static void next_bit();
-static void byte_flush();
 void count_probability_for_code_length(huffman_tree *litlen_tree[],
 									   size_t,
 									   huffman_tree *off_tree[],

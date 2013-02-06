@@ -9,8 +9,6 @@
 
 FILE *input;
 FILE *output;
-byte write_b = 0; /* byte for writing to output file */
-size_t write_i = 0; /* index of bit in write_b byte */
 cyclic_queue *cqdict; /* dictionary */
 cyclic_queue *cqbuff; /* proactive buffer */
 static char *ext = ".mz";
@@ -40,10 +38,32 @@ int main(int argc, char **argv)
 
 	if (global_args.isdecompress) {
 		die("decompressor is not implemented yet");
-	} else {
-//		dynamic_deflate(input_stat.st_size, true);
-//		static_deflate(true);
-		nocompress_deflate(input_stat.st_size, true);
+	} else {		
+		size_t last_size, size = 0, st_size = input_stat.st_size;
+		io io_static, io_dynamic;
+		bool isfinal = false;
+		io_static.input_name = global_args.input_name;
+		io_dynamic.input_name = global_args.input_name;
+		while (size < st_size) {
+			if (st_size - size > BLOCK_SIZE) {
+				last_size = BLOCK_SIZE;
+			} else {
+				last_size = st_size - size;
+				isfinal = true;
+			}
+
+			io_static.offset = size;
+			io_dynamic.size = last_size;
+			size += last_size;
+			/*
+			  static_size = static_deflate(&io_static, isfinal);
+			  dynamic_size = dynamic_deflate(&io_dynamic, isfinal);
+			  
+			  if (dynamic_size < static_size && dynamic_size < last_size)
+			      write_to();
+			  else if ()
+			 */
+		}
 	}
 
 	delete_cyclic_queue(cqbuff);
