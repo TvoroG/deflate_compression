@@ -1,44 +1,41 @@
 #include "writer.h"
 #include "alphabets.h"
 
-static byte write_b = 0; /* byte for writing to output file */
-static size_t write_i = 0; /* index of bit in write_b byte */
-
-void write_huffman_code(size_t huff_code, size_t num)
+void write_huffman_code(io *io_s, size_t huff_code, size_t num)
 {
 	int i;
 	for (i = num - 1; i >= 0; i--) {
 		if (BitIsSet(huff_code, i))
-			SetBit(write_b, write_i);
-		next_bit();
+			SetBit(io_s->write_b, io_s->write_i);
+		next_bit(io_s);
 	}
 }
 
-void write_bits(size_t bits, size_t bits_num)
+void write_bits(io *io_s, size_t bits, size_t bits_num)
 {
 	int i;
 	for (i = 0; i < bits_num; i++) {
 		if (BitIsSet(bits, i))
-			SetBit(write_b, write_i);
-		next_bit();
+			SetBit(io_s->write_b, io_s->write_i);
+		next_bit(io_s);
 	}
 }
 
-void next_bit()
+void next_bit(io *io_s)
 {
-	write_i++;
-	if (write_i >= N) {
-		fwrite(&write_b, EL_SIZE, 1, output);
-		write_b = 0;
-		write_i = 0;
+	io_s->write_i++;
+	if (io_s->write_i >= N) {
+		fwrite(&io_s->write_b, EL_SIZE, 1, io_s->output);
+		io_s->write_b = 0;
+		io_s->write_i = 0;
 	}
 }
 
-void byte_flush()
+void byte_flush(io *io_s)
 {
-	if (write_i > 0) {
-		fwrite(&write_b, EL_SIZE, 1, output);
-		write_b = 0;
-		write_i = 0;
+	if (io_s->write_i > 0) {
+		fwrite(&io_s->write_b, EL_SIZE, 1, io_s->output);
+		io_s->write_b = 0;
+		io_s->write_i = 0;
 	}
 }
