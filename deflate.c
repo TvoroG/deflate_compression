@@ -2,67 +2,82 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "deflate.h"
 #include "static_deflate.h"
 #include "cyclic_queue.h"
 
-FILE *input;
-FILE *output;
 cyclic_queue *cqdict; /* dictionary */
 cyclic_queue *cqbuff; /* proactive buffer */
 static char *ext = ".mz";
 static char *usage = "usage: deflate [-d] intput [output]";
 
-struct globalArgs_t {
-	char *input_name;
-	char *output_name;
-	bool isdecompress;
-} global_args;
+struct globalArgs_t global_args;
 
 int main(int argc, char **argv)
 {
 	get_args(argc, argv);
 	get_files_name();
 	
-	input = fopen(global_args.input_name, "r");
-	output = fopen(global_args.output_name, "w");
-	if (input == NULL || output == NULL)
+//	input = fopen(global_args.input_name, "r");
+	FILE *output = fopen(global_args.output_name, "w");
+	if (output == NULL)
 		die(NULL);
 
 	cqdict = new_cyclic_queue(DICT_SIZE_Q);
 	cqbuff = new_cyclic_queue(LEN_SIZE_Q);
 
 	struct stat input_stat;
-	stat(INPUT, &input_stat);
+	stat(global_args.input_name, &input_stat);
 
 	if (global_args.isdecompress) {
 		die("decompressor is not implemented yet");
-	} else {		
+	} else {
+		int rc1, rc2;
+		pthread_t thread_static, thread_dynamic;
+
 		size_t last_size, size = 0, st_size = input_stat.st_size;
-		io io_static, io_dynamic;
-		bool isfinal = false;
-		io_static.input_name = global_args.input_name;
-		io_dynamic.input_name = global_args.input_name;
+
+		void *size_static_p, *size_dynamic_p;
+		size_t size_static, size_dynamic;
+
+		io *io_static, *io_dynamic;
+		init_io(io_static);
+		init_io(io_dynamic);
+
 		while (size < st_size) {
 			if (st_size - size > BLOCK_SIZE) {
 				last_size = BLOCK_SIZE;
 			} else {
 				last_size = st_size - size;
-				isfinal = true;
+				io_static.isfinal = true;
+				io_dynamic.isfinal = true;
 			}
 
 			io_static.offset = size;
 			io_dynamic.size = last_size;
 			size += last_size;
-			/*
-			  static_size = static_deflate(&io_static, isfinal);
-			  dynamic_size = dynamic_deflate(&io_dynamic, isfinal);
-			  
-			  if (dynamic_size < static_size && dynamic_size < last_size)
-			      write_to();
-			  else if ()
-			 */
+
+			rc1 = pthread_create(&thread_static, NULL, 
+								 &static_deflate, io_static);
+			rc2 = pthread_create(&thread_dynamic, NULL, 
+								 &dynamic_deflate, io_dynamic);
+
+			if (rc1 || rc2)
+				die("thread creation failed");
+			pthread_join(thread_static, &size_static_p);
+			pthread_join(thread_dynamic, &size_dynamic_p);
+			size_static = *((size_t *) size_static_p);
+			size_dynamic = *((size_t *) size_dynamic_p);
+
+			if (size_dynamic < size_static && size_dynamic < last_size)
+				//write io_dynamic.output file into output
+			else if (size_static < size_dynamic && 
+					 size_static < last_size)
+				//write io_static.output file into output
+			else
+				//nocompressed_deflate();
 		}
 	}
 
@@ -70,7 +85,6 @@ int main(int argc, char **argv)
 	delete_cyclic_queue(cqdict);
 
 	free(global_args.output_name);
-	fclose(input);
 	fclose(output);
 	exit(0);
 }
@@ -127,6 +141,18 @@ void die(char *mes)
 	else
 		perror("error");
 	exit(1);
+}
+
+void init_io(io *io_s)
+{
+	io_s->input_name = global_args.input_name;
+	io_s->write_b = 0;
+	io_s->write_i = 0;
+	io_s->isfinal = false;
+
+	strcpy(io_s->output_name, "XXXXXX");
+	int fd = mkstemp(io_s->output_name);
+	io_s->output = fdopen(fd, "r+w");
 }
 
 void print_bytes(int b, size_t size)
