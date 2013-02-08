@@ -6,7 +6,9 @@
 
 #include "deflate.h"
 #include "static_deflate.h"
+#include "dynamic_deflate.h"
 #include "cyclic_queue.h"
+#include "writer.h"
 
 cyclic_queue *cqdict; /* dictionary */
 cyclic_queue *cqbuff; /* proactive buffer */
@@ -51,12 +53,12 @@ int main(int argc, char **argv)
 				last_size = BLOCK_SIZE;
 			} else {
 				last_size = st_size - size;
-				io_static.isfinal = true;
-				io_dynamic.isfinal = true;
+				io_static->isfinal = true;
+				io_dynamic->isfinal = true;
 			}
 
-			io_static.offset = size;
-			io_dynamic.size = last_size;
+			io_static->offset = size;
+			io_dynamic->block_size = last_size;
 			size += last_size;
 
 			rc1 = pthread_create(&thread_static, NULL, 
@@ -66,10 +68,10 @@ int main(int argc, char **argv)
 
 			if (rc1 || rc2)
 				die("thread creation failed");
-			pthread_join(thread_static, &size_static_p);
-			pthread_join(thread_dynamic, &size_dynamic_p);
-			size_static = *((size_t *) size_static_p);
-			size_dynamic = *((size_t *) size_dynamic_p);
+			pthread_join(thread_static, NULL);
+			pthread_join(thread_dynamic, NULL);
+			size_static = io_static->result;
+			size_dynamic = io_dynamic->result;
 
 			if (size_dynamic < size_static && size_dynamic < last_size)
 				//write io_dynamic.output file into output
@@ -141,18 +143,6 @@ void die(char *mes)
 	else
 		perror("error");
 	exit(1);
-}
-
-void init_io(io *io_s)
-{
-	io_s->input_name = global_args.input_name;
-	io_s->write_b = 0;
-	io_s->write_i = 0;
-	io_s->isfinal = false;
-
-	strcpy(io_s->output_name, "XXXXXX");
-	int fd = mkstemp(io_s->output_name);
-	io_s->output = fdopen(fd, "r+w");
 }
 
 void print_bytes(int b, size_t size)

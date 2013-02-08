@@ -1,12 +1,19 @@
-#include <stdint.h>
 #include "nocompress_deflate.h"
+
+#include <stdint.h>
 #include "writer.h"
 
-void nocompress_deflate(off_t block_size, bool isfinal)
+/* internal declarations */
+static void write_nocompress_header(io *io_s);
+static void write_length_of_block(off_t block_size);
+static void write_data(off_t block_size);
+
+/* definitions */
+void nocompress_deflate(io *io_s)
 {
-	write_nocompress_header(isfinal);
-	byte_flush();
-	write_length_of_block(block_size);
+	write_nocompress_header(io_s);
+	byte_flush(io_s);
+	write_length_of_block(io_s);
 	write_data(block_size);
 }
 
@@ -14,17 +21,17 @@ static void write_nocompress_header(bool isfinal)
 {
 	byte header = 0;
 	/* BFINAL */
-	if (isfinal)
+	if (io_s->isfinal)
 		SetBit(header, 0);
 	/* BTYPE */
 	
-	write_bits(header, HEADER_LEN);
+	write_bits(io_s, header, HEADER_LEN);
 }
 
-static void write_length_of_block(off_t block_size)
+static void write_length_of_block(io *io_s)
 {
-	uint32_t size = block_size;
-	fwrite(&size, sizeof(uint32_t), 1, output);
+	uint32_t size = io_s->block_size;
+	fwrite(&size, sizeof(uint32_t), 1, io_s->output);
 }
 
 static void write_data(off_t block_size)

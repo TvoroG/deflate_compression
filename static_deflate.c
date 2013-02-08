@@ -1,12 +1,22 @@
+#include "static_deflate.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <pthread.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include "static_deflate.h"
+
+#include "deflate.h"
 #include "alphabets.h"
 #include "writer.h"
 
+/* internal declarations */
+static void write_literal(io *io_s, two_bytes code);
+static void write_pointer(io *io_s, size_t length, size_t offset);
+static void write_static_header(io *io_s);
+static void write_end_of_block(io *io_s);
+
+/* definitions */
 void *static_deflate(void *io_struct)
 {
 	io *io_s = (io *) io_struct;
@@ -36,12 +46,9 @@ void *static_deflate(void *io_struct)
 			length = 1;
 
 		if (count < io_s->block_size) {
-			if (count + length <= io_s->block_size) {
-				last_count = fread(buff, EL_SIZE, length, io_s->input);
-			} else {
+			if (count + length > io_s->block_size)
 				length = count + length - io_s->block_size;
-				last_count = fread(buff, EL_SIZE, length, io_s->input);
-			}
+			last_count = fread(buff, EL_SIZE, length, io_s->input);
 			push_back_cyclic_queue(cqbuff, buff, last_count);
 			count += last_count;
 		}
@@ -54,8 +61,8 @@ void *static_deflate(void *io_struct)
 	free(buff);
 	fclose(io_s->input);
 
-	size_t res = get_output_size(io_s);
-	pthread_exit(&res);
+	io_s->result = get_output_size(io_s);
+	pthread_exit(NULL);
 }
 
 static void write_literal(io *io_s, two_bytes code)
@@ -114,18 +121,4 @@ static void write_end_of_block(io *io_s)
 	size_t huff_code_len;
 	get_huffman_code_of_litlen(code, &huff_code, &huff_code_len);
 	write_huffman_code(io_s, huff_code, huff_code_len);
-}
-
-static void prepare_input_file(io *io_s)
-{
-	io_s->input = fopen(io_s->input_name, "r");
-	if (fseek(io_s->input, io_s->offset, SEEK_SET))
-		die(NULL);
-}
-
-static size_t get_output_size(io *io_s)
-{
-	struct stat output_stat;
-	stat(io_s->output_name, &output_stat);
-	return output_stat.st_size;
 }

@@ -7,9 +7,6 @@
 
 #define BUFF_SIZE 100
 
-void nocompress_deflate(off_t block_size, bool isfinal);
+void nocompress_deflate(io *io_s);
 
-static void write_nocompress_header(bool isfinal);
-static void write_length_of_block(off_t block_size);
-static void write_data(off_t block_size);
 #endif
