@@ -7,14 +7,12 @@
 #include "deflate.h"
 #include "static_deflate.h"
 #include "dynamic_deflate.h"
+#include "nocompress_deflate.h"
 #include "cyclic_queue.h"
 #include "writer.h"
 
-cyclic_queue *cqdict; /* dictionary */
-cyclic_queue *cqbuff; /* proactive buffer */
 static char *ext = ".mz";
 static char *usage = "usage: deflate [-d] intput [output]";
-
 struct globalArgs_t global_args;
 
 int main(int argc, char **argv)
@@ -27,11 +25,9 @@ int main(int argc, char **argv)
 	if (output == NULL)
 		die(NULL);
 
-	cqdict = new_cyclic_queue(DICT_SIZE_Q);
-	cqbuff = new_cyclic_queue(LEN_SIZE_Q);
-
 	struct stat input_stat;
 	stat(global_args.input_name, &input_stat);
+	size_t st_size = input_stat.st_size;
 
 	if (global_args.isdecompress) {
 		die("decompressor is not implemented yet");
@@ -39,26 +35,33 @@ int main(int argc, char **argv)
 		int rc1, rc2;
 		pthread_t thread_static, thread_dynamic;
 
-		size_t last_size, size = 0, st_size = input_stat.st_size;
+		size_t last_size, size = 0;
 
 		void *size_static_p, *size_dynamic_p;
 		size_t size_static, size_dynamic;
 
-		io *io_static, *io_dynamic;
+		io *io_static, *io_dynamic, *io_nocom;
 		init_io(io_static);
 		init_io(io_dynamic);
-
+		init_io(io_nocom);
+		unlink(io_nocom->output_name);
+		io_nocom->output = output;
 		while (size < st_size) {
-			if (st_size - size > BLOCK_SIZE) {
+			if (st_size - size >= BLOCK_SIZE) {
 				last_size = BLOCK_SIZE;
 			} else {
 				last_size = st_size - size;
 				io_static->isfinal = true;
 				io_dynamic->isfinal = true;
+				io_nocom->isfinal = true;
 			}
 
 			io_static->offset = size;
+			io_static->block_size = last_size;
+			io_dynamic->offset = size;
 			io_dynamic->block_size = last_size;
+			io_nocom->offset = size;
+			io_nocom->block_size = last_size;
 			size += last_size;
 
 			rc1 = pthread_create(&thread_static, NULL, 
@@ -73,18 +76,20 @@ int main(int argc, char **argv)
 			size_static = io_static->result;
 			size_dynamic = io_dynamic->result;
 
-			if (size_dynamic < size_static && size_dynamic < last_size)
-				//write io_dynamic.output file into output
+			if (size_dynamic < size_static && 
+				size_dynamic < last_size)
+				write_to_output(io_static, output);
 			else if (size_static < size_dynamic && 
 					 size_static < last_size)
-				//write io_static.output file into output
+				write_to_output(io_dynamic, output);
 			else
-				//nocompressed_deflate();
+				nocompress_deflate(io_nocom);
 		}
-	}
 
-	delete_cyclic_queue(cqbuff);
-	delete_cyclic_queue(cqdict);
+		delete_io(io_static);
+		delete_io(io_dynamic);
+		delete_io(io_nocom);
+	}
 
 	free(global_args.output_name);
 	fclose(output);
