@@ -152,6 +152,7 @@ void *dynamic_deflate(void *io_struct)
 static size_t LZ77(two_bytes inter_res[], io *io_s)
 {
 	byte buff[LEN_MAX];
+	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q);
 	size_t count = fread(buff, EL_SIZE, 
 						 Min(LEN_MAX, io_s->block_size), io_s->input);
 	push_back_cyclic_queue(cqbuff, buff, count);
@@ -160,16 +161,16 @@ static size_t LZ77(two_bytes inter_res[], io *io_s)
 	size_t inter_res_i = 0;
 	size_t offset, length, last_count;
 	while (!isempty_cyclic_queue(cqbuff)) {
-		search_cyclic_queue(cqdict, cqbuff, &offset, &length);
+		search_cyclic_queue(io_s->cqdict, cqbuff, &offset, &length);
 		if (offset == 0 && length == 0) {
 			front_b = front_cyclic_queue(cqbuff);
 			inter_res[inter_res_i] = front_b;
 			inter_res_i++;
-			move_front_cyclic_queue(cqbuff, cqdict, 1);
+			move_front_cyclic_queue(cqbuff, io_s->cqdict, 1);
 		} else {
 			inter_res_i = write_pointer(inter_res, inter_res_i, 
 										length, offset);
-			move_front_cyclic_queue(cqbuff, cqdict, length);
+			move_front_cyclic_queue(cqbuff, io_s->cqdict, length);
 		}
 
 		if (length == 0)
@@ -184,6 +185,7 @@ static size_t LZ77(two_bytes inter_res[], io *io_s)
 		}
 	}
 
+	delete_cyclic_queue(cqbuff);
 	inter_res[inter_res_i] = END_OF_BLOCK;
 	return inter_res_i + 1;
 }
