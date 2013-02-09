@@ -21,6 +21,7 @@ void *static_deflate(void *io_struct)
 {
 	io *io_s = (io *) io_struct;
 	prepare_input_file(io_s);
+	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q);
 
 	write_static_header(io_s);
 
@@ -32,14 +33,14 @@ void *static_deflate(void *io_struct)
 	byte front_b;
 	size_t offset, length, last_count;
 	while (!isempty_cyclic_queue(cqbuff)) {
-		search_cyclic_queue(cqdict, cqbuff, &offset, &length);
+		search_cyclic_queue(io_s->cqdict, cqbuff, &offset, &length);
 		if (offset == 0 && length == 0) {
 			front_b = front_cyclic_queue(cqbuff);
 			write_literal(io_s, front_b);
-			move_front_cyclic_queue(cqbuff, cqdict, 1);
+			move_front_cyclic_queue(cqbuff, io_s->cqdict, 1);
 		} else {
 			write_pointer(io_s, length, offset);
-			move_front_cyclic_queue(cqbuff, cqdict, length);
+			move_front_cyclic_queue(cqbuff, io_s->cqdict, length);
 		}
 		
 		if (length == 0)
@@ -59,6 +60,7 @@ void *static_deflate(void *io_struct)
 		byte_flush(io_s);
 
 	free(buff);
+	delete_cyclic_queue(cqbuff);
 	fclose(io_s->input);
 
 	io_s->result = get_output_size(io_s);
