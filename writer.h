@@ -1,6 +1,7 @@
 #ifndef WRITER_H
 #define WRITER_H
 #include "deflate.h"
+#include "cyclic_queue.h"
 
 #define OUTPUT_NAME_LEN 7
 typedef struct {
@@ -8,6 +9,7 @@ typedef struct {
 	char output_name[OUTPUT_NAME_LEN];
 	FILE *input;
 	FILE *output;
+	cyclic_queue *cqdict;
 	long offset; /* offset in input file */
 	size_t block_size; /* block size to write */
 	byte write_b; /* byte for writing to output file */
@@ -23,5 +25,7 @@ void byte_flush(io *io_s);
 void prepare_input_file(io *io_s);
 size_t get_output_size(io *io_s);
 void init_io(io *io_s);
+void delete_io(io *io_s);
+void write_to_output(io *io_s, FILE *output);
 
 #endif
