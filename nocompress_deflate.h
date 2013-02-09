@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "deflate.h"
-
-#define BUFF_SIZE 100
+#include "writer.h"
 
 void nocompress_deflate(io *io_s);
 
