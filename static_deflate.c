@@ -20,7 +20,7 @@ static void write_end_of_block(io *io_s);
 void *static_deflate(void *io_struct)
 {
 	io *io_s = (io *) io_struct;
-	prepare_input_file(io_s);
+	prepare_input_output(io_s);
 	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q);
 
 	write_static_header(io_s);
@@ -60,7 +60,6 @@ void *static_deflate(void *io_struct)
 
 	delete_cyclic_queue(cqbuff);
 	io_s->result = get_output_size(io_s);
-	printf("syns = %d\n", io_s->result);
 	pthread_exit(NULL);
 }
 

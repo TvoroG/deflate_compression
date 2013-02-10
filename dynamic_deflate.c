@@ -46,6 +46,7 @@ static void assign_numerical_values(huffman_tree *tree[],
 static size_t get_max_len(size_t bl_count[], size_t size);
 static void sort_in_tree(huffman_tree *codes_num[], 
 						 huffman_tree *tree, int i);
+static void delete_trees(huffman_tree *tree[], size_t num);
 
 /* writing functions */
 static void write_dynamic_header(io *io_s);
@@ -75,7 +76,7 @@ static size_t write_pointer(two_bytes inter_res[],
 void *dynamic_deflate(void *io_struct)
 {
 	io *io_s = (io *) io_struct;
-	prepare_input_file(io_s);
+	prepare_input_output(io_s);
 
 	size_t res_size = io_s->block_size + (io_s->block_size / 3) * 12;
 	two_bytes *inter_res = (two_bytes *) malloc(res_size * sizeof(two_bytes));
@@ -145,8 +146,13 @@ void *dynamic_deflate(void *io_struct)
 		byte_flush(io_s);
 
 	free(inter_res);
+/*
+	delete_trees(litlen_tree, MAX_LITLEN_CODE + 1);
+	delete_trees(off_tree, MAX_OFF_CODE + 1);
+	delete_trees(length_tree, CODE_LEN_ALPHABET_SIZE);
+*/
+
 	io_s->result = get_output_size(io_s);
-	printf("dyns = %d\n", io_s->result);
 	pthread_exit(NULL);
 }
 
@@ -349,13 +355,13 @@ static size_t generate_huffman_codes(huffman_tree *tree[],
 	else
 		count_len_huffman_tree(tree[0], bl_count, 0);
 	destroy_tree(tree, tree[0]);
-	
+
 	size_t max_len = get_max_len(bl_count, tree_size + 1);
 
 	/* next_code size may be max_len + 1 */
 	size_t next_code[tree_size + 1];
 	find_numerical_values(bl_count, max_len, next_code);
-	
+
 	/* array_size may be replace with max_tree_code*/
 	assign_numerical_values(tree, array_size, next_code);
 	return max_len;
@@ -549,6 +555,7 @@ static void destroy_tree(huffman_tree *tree[], huffman_tree *cur)
 	} else {
 		destroy_tree(tree, cur->left);
 		destroy_tree(tree, cur->right);
+//		delete_huffman_tree(cur);
 	}
 }
 
@@ -569,10 +576,12 @@ static void assign_numerical_values(huffman_tree *tree[],
 {
 	size_t i, len;
 	for (i = 0; i < array_size; i++) {
-		len = tree[i]->len;
-		if (len != 0 && tree[i]->code == i) {
-			tree[i]->huff_code = next_code[len];
-			next_code[len]++;
+		if (tree[i] != NULL) {
+			len = tree[i]->len;
+			if (len != 0 && tree[i]->code == i) {
+				tree[i]->huff_code = next_code[len];
+				next_code[len]++;
+			}
 		}
 	}
 }
@@ -597,4 +606,12 @@ static void sort_in_tree(huffman_tree *codes_num[],
 		j--;
 	}
 	codes_num[j + 1] = tree;
+}
+
+static void delete_trees(huffman_tree *tree[], size_t num)
+{
+	size_t i;
+	for (i = 0; i < num; i++)
+		if (tree[i] != NULL)
+			delete_huffman_tree(&tree[i]);
 }
