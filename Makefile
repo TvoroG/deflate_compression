@@ -1,4 +1,4 @@
-#CFLAGS=-g -Wall -Isrc -Wall -Wextra
+CFLAGS=-g -Wall -Isrc -Wall -Wextra
 
 all: deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o
 	cc deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o -pthread -o deflate
