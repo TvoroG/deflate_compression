@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include <sys/types.h>
 
 #include "deflate.h"
@@ -77,7 +78,7 @@ void *dynamic_deflate(void *io_struct)
 	prepare_input_file(io_s);
 
 	size_t res_size = io_s->block_size + (io_s->block_size / 3) * 12;
-	two_bytes *inter_res = (two_bytes *) malloc(res_size);
+	two_bytes *inter_res = (two_bytes *) malloc(res_size * sizeof(two_bytes));
 	memset(inter_res, 0, res_size * sizeof(two_bytes));
 
 	size_t real_size = LZ77(inter_res, io_s);
@@ -139,13 +140,13 @@ void *dynamic_deflate(void *io_struct)
 								   max_off_code);
 	write_compressed_data(io_s, inter_res, real_size, 
 						  litlen_tree, off_tree);
+
 	if (io_s->isfinal)
 		byte_flush(io_s);
 
 	free(inter_res);
-	free(io_s->input);
-
 	io_s->result = get_output_size(io_s);
+	printf("dyns = %d\n", io_s->result);
 	pthread_exit(NULL);
 }
 
@@ -153,8 +154,7 @@ static size_t LZ77(two_bytes inter_res[], io *io_s)
 {
 	byte buff[LEN_MAX];
 	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q);
-	size_t count = fread(buff, EL_SIZE, 
-						 Min(LEN_MAX, io_s->block_size), io_s->input);
+	size_t count = fread(buff, EL_SIZE, LEN_MAX, io_s->input);
 	push_back_cyclic_queue(cqbuff, buff, count);
 
 	byte front_b;
@@ -177,7 +177,7 @@ static size_t LZ77(two_bytes inter_res[], io *io_s)
 			length = 1;
 
 		if (count < io_s->block_size) {
-			if (count + length <= io_s->block_size)
+			if (count + length > io_s->block_size)
 				length = count + length - io_s->block_size;
 			last_count = fread(buff, EL_SIZE, length, io_s->input);
 			push_back_cyclic_queue(cqbuff, buff, last_count);
@@ -192,7 +192,7 @@ static size_t LZ77(two_bytes inter_res[], io *io_s)
 
 static void init_tree(huffman_tree *tree[], size_t size)
 {
-	int j;
+	size_t j;
 	for (j = 0; j < size; j++)
 		tree[j] = new_huffman_tree(0, j, NULL, NULL);
 }
@@ -397,8 +397,7 @@ static void write_code_length_for_code_length(io *io_s,
 											  huffman_tree *length_tree[], 
 											  size_t HCLEN)
 {
-	int i;
-	size_t len;
+	size_t i, len;
 	for (i = 0; i < HCLEN; i++) {
 		len = code_length_order[i];
 		write_bits(io_s, length_tree[len]->len, 3);

@@ -64,34 +64,36 @@ size_t get_output_size(io *io_s)
 	return output_stat.st_size;
 }
 
-void init_io(io *io_s)
+void init_io(io **io_s)
 {
-	io_s = (io *) malloc(sizeof(io));
+	(*io_s) = (io *) malloc(sizeof(io));
 	
-	io_s->input = NULL;
-	io_s->input_name = global_args.input_name;
+	(*io_s)->input = NULL;
+	(*io_s)->input_name = global_args.input_name;
 
-	io_s->cqdict = new_cyclic_queue(DICT_SIZE_Q);	
-	io_s->write_b = 0;
-	io_s->write_i = 0;
-	io_s->isfinal = false;
+	(*io_s)->cqdict = new_cyclic_queue(DICT_SIZE_Q);	
 
-	strcpy(io_s->output_name, "XXXXXX");
-	int fd = mkstemp(io_s->output_name);
-	io_s->output = fdopen(fd, "r+w");
-	if (io_s->output == NULL)
+	(*io_s)->write_b = 0;
+	(*io_s)->write_i = 0;
+	(*io_s)->isfinal = false;
+
+	strcpy((*io_s)->output_name, "XXXXXX");
+	int fd = mkstemp((*io_s)->output_name);
+	(*io_s)->output = fdopen(fd, "r+w");
+	if ((*io_s)->output == NULL)
 		die(NULL);
+	close(fd);
 }
 
-void delete_io(io *io_s)
+void delete_io(io **io_s)
 {
-	if (io_s->input != NULL)
-		fclose(io_s->input);
-	if (io_s->output != NULL)
-		unlink(io_s->output_name);
-	
-	delete_cyclic_queue(io_s->cqdict);
-	free(io_s);
+	if ((*io_s)->input != NULL)
+		fclose((*io_s)->input);
+	if ((*io_s)->output != NULL)
+		unlink((*io_s)->output_name);
+
+	delete_cyclic_queue((*io_s)->cqdict);
+	free(*io_s);
 }
 
 void write_to_output(io *io_s, FILE *output)
@@ -99,7 +101,7 @@ void write_to_output(io *io_s, FILE *output)
 	fseek(io_s->output, 0, SEEK_SET);
 	FILE *input = io_s->output;
 
-	byte *buff[1000];
+	byte buff[WRITE_BUFF_SIZE];
 	size_t last_size;
 	while (!feof(input)) {
 		last_size = fread(buff, EL_SIZE, WRITE_BUFF_SIZE, input);

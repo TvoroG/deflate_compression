@@ -41,10 +41,9 @@ int main(int argc, char **argv)
 		size_t size_static, size_dynamic;
 
 		io *io_static, *io_dynamic, *io_nocom;
-		init_io(io_static);
-		init_io(io_dynamic);
-		init_io(io_nocom);
-		unlink(io_nocom->output_name);
+		init_io(&io_static);
+		init_io(&io_dynamic);
+		init_io(&io_nocom);
 		io_nocom->output = output;
 		while (size < st_size) {
 			if (st_size - size >= BLOCK_SIZE) {
@@ -76,6 +75,7 @@ int main(int argc, char **argv)
 			size_static = io_static->result;
 			size_dynamic = io_dynamic->result;
 
+			printf("ss = %d, sd = %d, sn = %d\n", size_static, size_dynamic, last_size);
 			if (size_dynamic < size_static && 
 				size_dynamic < last_size)
 				write_to_output(io_static, output);
@@ -86,9 +86,9 @@ int main(int argc, char **argv)
 				nocompress_deflate(io_nocom);
 		}
 
-		delete_io(io_static);
-		delete_io(io_dynamic);
-		delete_io(io_nocom);
+		delete_io(&io_static);
+		delete_io(&io_dynamic);
+		delete_io(&io_nocom);
 	}
 
 	free(global_args.output_name);

@@ -24,8 +24,8 @@ void next_bit(io *io_s);
 void byte_flush(io *io_s);
 void prepare_input_file(io *io_s);
 size_t get_output_size(io *io_s);
-void init_io(io *io_s);
-void delete_io(io *io_s);
+void init_io(io **io_s);
+void delete_io(io **io_s);
 void write_to_output(io *io_s, FILE *output);
 
 #endif

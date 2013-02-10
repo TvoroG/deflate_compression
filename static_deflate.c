@@ -25,9 +25,8 @@ void *static_deflate(void *io_struct)
 
 	write_static_header(io_s);
 
-	byte *buff = (byte *) malloc(LEN_MAX);
-	size_t count = fread(buff, EL_SIZE, 
-						 Min(LEN_MAX, io_s->block_size), io_s->input);
+	byte buff[LEN_MAX];
+	size_t count = fread(buff, EL_SIZE, LEN_MAX, io_s->input);
 	push_back_cyclic_queue(cqbuff, buff, count);
 
 	byte front_b;
@@ -59,11 +58,9 @@ void *static_deflate(void *io_struct)
 	if (io_s->isfinal)
 		byte_flush(io_s);
 
-	free(buff);
 	delete_cyclic_queue(cqbuff);
-	fclose(io_s->input);
-
 	io_s->result = get_output_size(io_s);
+	printf("syns = %d\n", io_s->result);
 	pthread_exit(NULL);
 }
 
