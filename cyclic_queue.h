@@ -22,6 +22,10 @@ void search_cyclic_queue(cyclic_queue *,
 						 cyclic_queue *, 
 						 size_t *, 
 						 size_t *);
+size_t size_cyclic_queue(cyclic_queue *);
+void clear_cyclic_queue(cyclic_queue *);
+size_t read_cyclic_queue(cyclic_queue *cq, byte buff[],
+						 size_t from, size_t buff_size);
 void print_cyclic_queue(cyclic_queue *);
 
 #endif

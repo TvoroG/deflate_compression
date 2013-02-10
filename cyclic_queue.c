@@ -114,6 +114,49 @@ void search_cyclic_queue(cyclic_queue *dict,
 	*length = maxlen;
 }
 
+size_t size_cyclic_queue(cyclic_queue *cq)
+{
+	if (cq->s <= cq->e)
+		return cq->e - cq->s;
+	else
+		return cq->len - cq->s + cq->e;
+}
+
+void clear_cyclic_queue(cyclic_queue *cq)
+{
+	cq->s = 0;
+	cq->e = 0;
+}
+
+size_t read_cyclic_queue(cyclic_queue *cq, byte buff[], 
+						 size_t from, size_t buff_size)
+{
+	assert(from < cq->len);
+	size_t num = 0;
+	int i;
+
+	if (cq->s <= cq->e) {
+		i = cq->s + from;
+		if (i < cq->len && i < cq->e)
+			for ( ; i != cq->e && num < buff_size; i++, num++)
+				buff[num] = cq->queue[i];
+	} else {
+		i = cq->s + from;
+		if (i >= cq->len)
+			i = i - cq->len;
+
+		if (i < cq->e) 
+			for ( ; i != cq->e && num < buff_size; num++) {
+				buff[num] = cq->queue[i];
+				i++;
+				if (i >= cq->len)
+					i = 0;
+			}
+	}
+
+	return num;
+}
+
 void print_cyclic_queue(cyclic_queue *cq)
 {
 	int i;
