@@ -33,7 +33,7 @@ void next_bit(io *io_s)
 {
 	io_s->write_i++;
 	if (io_s->write_i >= N) {
-		fwrite(&io_s->write_b, EL_SIZE, 1, io_s->output);
+		add_cyclic_queue(io_s->output, io_s->write_b);
 		io_s->write_b = 0;
 		io_s->write_i = 0;
 	}
@@ -42,26 +42,25 @@ void next_bit(io *io_s)
 void byte_flush(io *io_s)
 {
 	if (io_s->write_i > 0) {
-		fwrite(&io_s->write_b, EL_SIZE, 1, io_s->output);
+		add_cyclic_queue(io_s->output, io_s->write_b);
 		io_s->write_b = 0;
 		io_s->write_i = 0;
 	}
 }
 
-void prepare_input_file(io *io_s)
+void prepare_input_output(io *io_s)
 {
 	if (io_s->input == NULL)
 		io_s->input = fopen(io_s->input_name, "r");
-
 	if (fseek(io_s->input, io_s->offset, SEEK_SET))
 		die(NULL);
+
+	clear_cyclic_queue(io_s->output);
 }
 
 size_t get_output_size(io *io_s)
 {
-	struct stat output_stat;
-	stat(io_s->output_name, &output_stat);
-	return output_stat.st_size;
+	return size_cyclic_queue(io_s->output);
 }
 
 void init_io(io **io_s)
@@ -71,42 +70,33 @@ void init_io(io **io_s)
 	(*io_s)->input = NULL;
 	(*io_s)->input_name = global_args.input_name;
 
-	(*io_s)->cqdict = new_cyclic_queue(DICT_SIZE_Q);	
+	(*io_s)->output = new_cyclic_queue(2 * BLOCK_SIZE);
+	(*io_s)->cqdict = new_cyclic_queue(DICT_SIZE_Q);
 
 	(*io_s)->write_b = 0;
 	(*io_s)->write_i = 0;
 	(*io_s)->isfinal = false;
-
-	strcpy((*io_s)->output_name, "XXXXXX");
-	int fd = mkstemp((*io_s)->output_name);
-	(*io_s)->output = fdopen(fd, "r+w");
-	if ((*io_s)->output == NULL)
-		die(NULL);
-	close(fd);
 }
 
 void delete_io(io **io_s)
 {
 	if ((*io_s)->input != NULL)
 		fclose((*io_s)->input);
-	if ((*io_s)->output != NULL)
-		unlink((*io_s)->output_name);
 
+	delete_cyclic_queue((*io_s)->output);
 	delete_cyclic_queue((*io_s)->cqdict);
 	free(*io_s);
 }
 
 void write_to_output(io *io_s, FILE *output)
 {	
-	fseek(io_s->output, 0, SEEK_SET);
-	FILE *input = io_s->output;
+	cyclic_queue *input = io_s->output;
 
 	byte buff[WRITE_BUFF_SIZE];
-	size_t last_size;
-	while (!feof(input)) {
-		last_size = fread(buff, EL_SIZE, WRITE_BUFF_SIZE, input);
+	size_t last_size, size = 0, size_cq = size_cyclic_queue(input);
+	while (size < size_cq) {
+		last_size = read_cyclic_queue(input, buff, size, WRITE_BUFF_SIZE);
 		fwrite(buff, EL_SIZE, last_size, output);
+		size += last_size;
 	}
-
-	fseek(io_s->output, 0, SEEK_SET);
 }

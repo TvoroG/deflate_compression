@@ -6,9 +6,9 @@
 #define OUTPUT_NAME_LEN 7
 typedef struct {
 	char *input_name;
-	char output_name[OUTPUT_NAME_LEN];
 	FILE *input;
-	FILE *output;
+	FILE *output_file; /* for nocompressed deflate */
+	cyclic_queue *output;
 	cyclic_queue *cqdict;
 	long offset; /* offset in input file */
 	size_t block_size; /* block size to write */
@@ -22,7 +22,7 @@ void write_huffman_code(io *io_s, size_t huff_code, size_t num);
 void write_bits(io *io_s, size_t bits, size_t bits_num);
 void next_bit(io *io_s);
 void byte_flush(io *io_s);
-void prepare_input_file(io *io_s);
+void prepare_input_output(io *io_s);
 size_t get_output_size(io *io_s);
 void init_io(io **io_s);
 void delete_io(io **io_s);
