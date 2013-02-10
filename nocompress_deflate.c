@@ -11,7 +11,7 @@ static void write_data(io *io_s);
 /* definitions */
 void nocompress_deflate(io *io_s)
 {
-	prepare_input_file(io_s);
+	prepare_input_output(io_s);
 	write_nocompress_header(io_s);
 	byte_flush(io_s);
 	write_length_of_block(io_s);
@@ -32,7 +32,7 @@ static void write_nocompress_header(io *io_s)
 static void write_length_of_block(io *io_s)
 {
 	uint32_t size = io_s->block_size;
-	fwrite(&size, sizeof(uint32_t), 1, io_s->output);
+	fwrite(&size, sizeof(uint32_t), 1, io_s->output_file);
 }
 
 static void write_data(io *io_s)
@@ -45,7 +45,7 @@ static void write_data(io *io_s)
 		else
 			to_read = BUFF_SIZE;
 		last_count = fread(buff, EL_SIZE, to_read, io_s->input);
-		fwrite(buff, EL_SIZE, last_count, io_s->output);
+		fwrite(buff, EL_SIZE, last_count, io_s->output_file);
 		count += last_count;
 	}
 }
