@@ -16,7 +16,7 @@ huffman_tree *new_huffman_tree(prob_t,
 							   two_bytes, 
 							   huffman_tree *, 
 							   huffman_tree *);
-
+void delete_huffman_tree(huffman_tree **);
 void count_len_huffman_tree(huffman_tree *, size_t [], size_t);
 int compare_huffman_tree(const void *, const void *);
 void print_huffman_tree(huffman_tree *);

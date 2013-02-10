@@ -1,4 +1,5 @@
 #include "huffman_tree.h"
+#include <stdlib.h>
 
 
 huffman_tree *new_huffman_tree(prob_t prob, 
@@ -14,6 +15,12 @@ huffman_tree *new_huffman_tree(prob_t prob,
 	tree->left = left;
 	tree->right = right;
 	return tree;
+}
+
+void delete_huffman_tree(huffman_tree **tree)
+{
+	free(*tree);
+	*tree = NULL;
 }
 
 void count_len_huffman_tree(huffman_tree *tree, 
