@@ -11,6 +11,12 @@
 #include "cyclic_queue.h"
 #include "writer.h"
 
+#include "inflate.h"
+#include "reader.h"
+
+#include "tests.h"
+static void do_tests();
+
 static char *ext = ".mz";
 static char *usage = "usage: deflate [-d] intput [output]";
 struct globalArgs_t global_args;
@@ -20,6 +26,8 @@ int main(int argc, char **argv)
 	get_args(argc, argv);
 	get_files_name();
 	
+	do_tests();
+
 //	input = fopen(global_args.input_name, "r");
 	FILE *output = fopen(global_args.output_name, "w");
 	if (output == NULL)
@@ -30,7 +38,10 @@ int main(int argc, char **argv)
 	size_t st_size = input_stat.st_size;
 
 	if (global_args.isdecompress) {
-		die("decompressor is not implemented yet");
+		reader_t *reader;
+		init_reader(&reader);
+		inflate(reader);
+		delete_reader(&reader);
 	} else {
 		int rc1, rc2;
 		pthread_t thread_static, thread_dynamic;
@@ -155,4 +166,11 @@ void print_bytes(int b, size_t size)
 	int i;
 	for (i = size * N - 1; i >= 0; i--)
 		printf("%d", GetBit(b, i));
+}
+
+static void do_tests()
+{
+	test_init_reader();
+	test_read_header();
+	printf("end of tests\n");
 }
