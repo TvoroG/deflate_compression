@@ -1,7 +1,7 @@
 CFLAGS=-g -Wall -Isrc -Wall -Wextra
 
-all: deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o
-	cc deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o -pthread -o deflate
+all: deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o inflate.o reader.o tests.o
+	cc deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o inflate.o reader.o tests.o -pthread -o deflate
 
 deflate.o: deflate.c deflate.h
 	cc -c deflate.h deflate.c
@@ -29,3 +29,14 @@ writer.o: writer.c writer.h
 
 clean:
 	rm *.o deflate
+
+inflate: inflate.o reader.o
+
+inflate.o: inflate.h inflate.c
+	cc -c inflate.h inflate.c
+
+reader.o: reader.c reader.h
+	cc -c reader.c reader.h
+
+tests.o: tests.h tests.c
+	cc -c tests.c tests.h
