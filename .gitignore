@@ -5,3 +5,4 @@ output
 *.[oa]
 *.h.gch
 *.mz
+run.sh
