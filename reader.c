@@ -1,5 +1,7 @@
 #include "reader.h"
 
+#include "alphabets.h"
+
 void init_reader(reader_t **reader)
 {
 	*reader = (reader_t *) malloc(sizeof(reader_t));
@@ -47,6 +49,44 @@ void read_block_header(reader_t *reader)
 		reader->compress_type = ERROR_C;
 }
 
+two_bytes decode_next_litlen(reader_t *reader)
+{
+	two_bytes tb = 0;
+	two_bytes base_code, last_code;
+	int i;
+
+	/* read first seven bits */
+	for (i = 6; i >= 0; i--) {
+		if (BitIsSet(reader->read_b, reader->read_i))
+			SetBit(tb, i);
+		read_next_bit(reader);
+	}
+	if (is_in_huffman_code(tb, 2))
+		return tb - huffman_codes[2].base_code + huffman_codes[2].base_lit_value;
+
+	/* if tb does not match then read next bit and compare
+	 with codes which length is 8 */
+	tb = tb << 1;
+	if (BitIsSet(reader->read_b, reader->read_i))
+		SetBit(tb, 0);
+	read_next_bit(reader);
+	if (is_in_huffman_code(tb, 0))
+		return tb - huffman_codes[0].base_code + huffman_codes[0].base_lit_value;
+	else if (is_in_huffman_code(tb, 3))
+		return tb - huffman_codes[3].base_code + huffman_codes[3].base_lit_value;
+
+	/* compare with code which length is 9 */
+	tb = tb << 1;
+	if (BitIsSet(reader->read_b, reader->read_i))
+		SetBit(tb, 0);
+	read_next_bit(reader);
+	if (is_in_huffman_code(tb, 1))
+		return tb - huffman_codes[1].base_code + huffman_codes[1].base_lit_value;
+
+	die("error in decode_next_litlen");
+	return tb;
+}
+
 void read_next_bit(reader_t *reader)
 {
 	reader->read_i++;
@@ -61,4 +101,23 @@ void read_next_byte(reader_t *reader)
 	byte b;
 	fread(&b, sizeof(byte), 1, reader->input);
 	reader->read_b = b;
+}
+
+bool is_in_huffman_code(two_bytes code, int index)
+{
+	assert(index >= 0 && index <= HUFF_CODE_NUM);
+
+	two_bytes next_base;
+	if (index == HUFF_CODE_NUM - 1)
+		next_base = LAST_LIT_VALUE + 1;
+	else
+		next_base = huffman_codes[index + 1].base_lit_value;
+
+	two_bytes base_code = huffman_codes[index].base_code;
+	two_bytes last_code = base_code + next_base - huffman_codes[index].base_lit_value - 1;
+
+	if (code >= base_code && code <= last_code)
+		return true;
+	else
+		return false;
 }

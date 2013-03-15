@@ -18,7 +18,9 @@ typedef struct _reader_t {
 void init_reader(reader_t **reader);
 void delete_reader(reader_t **reader);
 void read_block_header(reader_t *reader);
+two_bytes decode_next_litlen(reader_t *reader);
 void read_next_bit(reader_t *reader);
 void read_next_byte(reader_t *reader);
+bool is_in_huffman_code(two_bytes code, int index);
 
 #endif
