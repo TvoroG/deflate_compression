@@ -16,7 +16,7 @@ void static_inflate(reader_t *reader)
 	bool is_end_of_block = false;
 	while (!is_end_of_block) {
 		litlen = decode_next_litlen(reader);
-		if (litlen < 256)
+		if (litlen < END_OF_BLOCK)
 			write_bits(io_s, litlen, N);
 		else if (litlen == END_OF_BLOCK)
 			is_end_of_block = true;
