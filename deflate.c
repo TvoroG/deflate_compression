@@ -172,5 +172,7 @@ static void do_tests()
 {
 	test_init_reader();
 	test_read_header();
+	test_is_in_huffman_code();
+	test_decode_next_litlen();
 	printf("end of tests\n");
 }
