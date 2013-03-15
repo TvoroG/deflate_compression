@@ -8,6 +8,7 @@ void init_reader(reader_t **reader)
 	
 	(*reader)->input_name = global_args.input_name;
 	(*reader)->input = fopen((*reader)->input_name, "r");
+	(*reader)->output = fopen(global_args.output_name, "w");	
 
 	read_next_byte(*reader);
 	(*reader)->read_i = 0;
@@ -85,6 +86,44 @@ two_bytes decode_next_litlen(reader_t *reader)
 
 	die("error in decode_next_litlen");
 	return tb;
+}
+
+two_bytes decode_length(reader_t *reader, two_bytes lencode)
+{
+	size_t extra_bits_num = length_codes[lencode - LEN_CODE_BEGINNING].extra_bits_num;
+	
+	size_t extra_len = 0;
+	size_t i;
+	for (i = 0; i < extra_bits_num; i++) {
+		if (BitIsSet(reader->read_b, reader->read_i))
+			SetBit(extra_len, i);
+		read_next_bit(reader);
+	}
+	
+	two_bytes len = length_codes[lencode - LEN_CODE_BEGINNING].base_len + extra_len;
+	return len;
+}
+
+two_bytes decode_distance(reader_t *reader)
+{
+	two_bytes offset_code = 0;
+	size_t i;
+	for (i = 0; i < OFF_CODE_LEN; i++) {
+		if (BitIsSet(reader->read_b, reader->read_i))
+			SetBit(offset_code, i);
+		read_next_bit(reader);
+	}
+
+	size_t extra_off = 0;
+	size_t extra_bits_num = offset_codes[offset_code].extra_bits_num;	
+	for (i = 0; i < extra_bits_num; i++) {
+		if (BitIsSet(reader->read_b, reader->read_i))
+			SetBit(extra_off, i);
+		read_next_bit(reader);
+	}
+
+	two_bytes off = offset_codes[offset_code].base_off + extra_off;
+	return off;
 }
 
 void read_next_bit(reader_t *reader)
