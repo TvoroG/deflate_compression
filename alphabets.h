@@ -24,6 +24,7 @@ extern _offset_codes_t offset_codes[];
 
 
 #define HUFF_CODE_NUM 4
+#define LAST_LIT_VALUE 287
 typedef struct {
 	size_t bits_num;
 	two_bytes base_lit_value;
