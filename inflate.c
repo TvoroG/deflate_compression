@@ -2,7 +2,9 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+
 #include "deflate.h"
+#include "static_inflate.h"
 
 static bool is_nocompression_type(reader_t *reader);
 static bool is_static_type(reader_t *reader);
@@ -17,7 +19,7 @@ void inflate(reader_t *reader)
 		if (is_nocompression_type(reader)) {
 			printf("invoke nocomp\n");
 		} else if (is_static_type(reader)) {
-			printf("invoke satic\n");
+			static_inflate(reader);
 		} else if (is_dynamic_type(reader)) {
 			printf("invoke dynamic\n");
 		} else {
