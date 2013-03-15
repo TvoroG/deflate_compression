@@ -13,6 +13,7 @@ void test_init_reader()
 {
 	reader_t *reader;
 	init_reader(&reader);
+	assert(reader->output != NULL);
 	assert(reader->isfinal == false);
 	assert(reader->compress_type == ERROR_C);
 	assert(reader->input != NULL);
@@ -39,7 +40,6 @@ void test_is_in_huffman_code()
 {
 	reader_t *reader;
 	init_reader(&reader);
-	read_block_header(reader);
 	assert(is_in_huffman_code(51, 0) == true);
 	assert(is_in_huffman_code(403, 1) == true);
 	assert(is_in_huffman_code(5, 2) == true);
