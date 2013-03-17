@@ -374,7 +374,7 @@ static void write_dynamic_header(io *io_s)
 	if (io_s->isfinal)
 		SetBit(header, 0);
 	/* BTYPE */
-	SetBit(header, 1);
+	SetBit(header, 2);
 	
 	write_bits(io_s, header, HEADER_LEN);
 }
