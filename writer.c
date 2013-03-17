@@ -29,6 +29,20 @@ void write_bits(io *io_s, size_t bits, size_t bits_num)
 	}
 }
 
+void write_byte(io *io_s, byte b)
+{
+	assert(io_s->write_i == 0);
+	add_cyclic_queue(io_s->output, b);
+}
+
+void write_bytes(io *io_s, byte b[], size_t size)
+{
+	size_t i;
+	for (i = 0; i < size; i++) {
+		add_cyclic_queue(io_s->output, b[i]);
+	}
+}
+
 void next_bit(io *io_s)
 {
 	io_s->write_i++;

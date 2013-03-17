@@ -20,6 +20,8 @@ typedef struct {
 
 void write_huffman_code(io *io_s, size_t huff_code, size_t num);
 void write_bits(io *io_s, size_t bits, size_t bits_num);
+void write_byte(io *io_s, byte b);
+void write_bytes(io *io_s, byte b[], size_t size);
 void next_bit(io *io_s);
 void byte_flush(io *io_s);
 void prepare_input_output(io *io_s);
