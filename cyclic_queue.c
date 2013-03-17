@@ -157,6 +157,36 @@ size_t read_cyclic_queue(cyclic_queue *cq, byte buff[],
 	return num;
 }
 
+void get_cyclic_queue(cyclic_queue *cq, byte *buff, 
+					  two_bytes length, two_bytes offset)
+{
+	assert(size_cyclic_queue(cq) >= length);
+	assert(length <= offset);
+	int i;
+
+	if (cq->s <= cq->e) {
+		i = cq->e - offset;
+		assert(cq->s <= i);
+	} else if (cq->s > cq->e) {
+		if (offset > cq->e) {
+			i = cq->len - (offset - cq->e);
+			assert(cq->s <= i);
+		} else {
+			i = cq->e - offset;
+			assert(cq->s > i);
+		}
+	}
+
+	int k;
+	two_bytes len;
+	for (k = 0, len = length; len > 0; len--, k++) {
+		buff[k] = cq->queue[i];
+		i++;
+		if (i >= cq->len)
+			i = 0;
+	}
+}
+
 void print_cyclic_queue(cyclic_queue *cq)
 {
 	int i;
