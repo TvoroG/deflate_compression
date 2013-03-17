@@ -88,13 +88,14 @@ int main(int argc, char **argv)
 
 			printf("ss = %d, sd = %d, sn = %d\n", size_static, size_dynamic, last_size);
 			if (size_dynamic <= size_static && 
-				size_dynamic < last_size)
+				size_dynamic < last_size) {
 				write_to_output(io_dynamic, output);
-			else if (size_static <= size_dynamic && 
-					 size_static < last_size)
+			} else if (size_static <= size_dynamic && 
+					   size_static < last_size) {
 				write_to_output(io_static, output);
-			else
+			} else {
 				nocompress_deflate(io_nocom);
+			}
 		}
 
 		delete_io(&io_static);
@@ -176,7 +177,7 @@ static void do_tests()
 		test_is_in_huffman_code();
 		test_decode_next_litlen();
 /*	test_get_cyclic_queue();*/
-		test_huffman_codes();
+//		test_huffman_codes();
 		printf("end of tests\n");
 	}
 }
