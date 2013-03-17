@@ -2,6 +2,8 @@
 
 #include "alphabets.h"
 
+#define CL_FOR_CL_LEN 3
+
 void init_reader(reader_t **reader)
 {
 	*reader = (reader_t *) malloc(sizeof(reader_t));
@@ -32,14 +34,7 @@ void read_block_header(reader_t *reader)
 		reader->isfinal = true;
 	read_next_bit(reader);
 
-	byte b = 0;
-	if (BitIsSet(reader->read_b, reader->read_i))
-		SetBit(b, 0);
-	read_next_bit(reader);
-	if (BitIsSet(reader->read_b, reader->read_i))
-		SetBit(b, 1);
-	read_next_bit(reader);
-
+	byte b = read_bits(reader, 2);
 	if (b == 0)
 		reader->compress_type = NO_C;
 	else if (b == 1)
@@ -92,38 +87,38 @@ two_bytes decode_length(reader_t *reader, two_bytes lencode)
 {
 	size_t extra_bits_num = length_codes[lencode - LEN_CODE_BEGINNING].extra_bits_num;
 	
-	size_t extra_len = 0;
-	size_t i;
-	for (i = 0; i < extra_bits_num; i++) {
-		if (BitIsSet(reader->read_b, reader->read_i))
-			SetBit(extra_len, i);
-		read_next_bit(reader);
-	}
-	
+	size_t extra_len = read_bits(reader, extra_bits_num);
 	two_bytes len = length_codes[lencode - LEN_CODE_BEGINNING].base_len + extra_len;
 	return len;
 }
 
 two_bytes decode_distance(reader_t *reader)
 {
-	two_bytes offset_code = 0;
-	size_t i;
-	for (i = 0; i < OFF_CODE_LEN; i++) {
-		if (BitIsSet(reader->read_b, reader->read_i))
-			SetBit(offset_code, i);
-		read_next_bit(reader);
-	}
+	two_bytes offset_code = read_bits(reader, OFF_CODE_LEN);
 
-	size_t extra_off = 0;
-	size_t extra_bits_num = offset_codes[offset_code].extra_bits_num;	
-	for (i = 0; i < extra_bits_num; i++) {
-		if (BitIsSet(reader->read_b, reader->read_i))
-			SetBit(extra_off, i);
-		read_next_bit(reader);
-	}
+	size_t extra_bits_num = offset_codes[offset_code].extra_bits_num;
+	size_t extra_off = read_bits(reader, extra_bits_num);
 
 	two_bytes off = offset_codes[offset_code].base_off + extra_off;
 	return off;
+}
+
+byte read_HLIT(reader_t *reader)
+{
+	byte hlit = read_bits(reader, 5);
+	return hlit;
+}
+
+byte read_HDIST(reader_t *reader)
+{
+	byte hdist = read_bits(reader, 5);
+	return hdist;
+}
+
+byte read_HCLEN(reader_t *reader)
+{
+	byte hclen = read_bits(reader, 4);
+	return hclen;
 }
 
 void read_next_bit(reader_t *reader)
@@ -132,6 +127,17 @@ void read_next_bit(reader_t *reader)
 	if (reader->read_i >= N) {
 		reader->read_i = 0;
 		read_next_byte(reader);
+	}
+}
+
+void read_code_length_for_code_length(reader_t *reader, 
+									  huffman_code cl_for_cl[],
+									  size_t size)
+{
+	int i;
+	for (i = 0; i < size; i++) {
+		byte len = read_bits(reader, CL_FOR_CL_LEN);
+		cl_for_cl[code_length_order[i]].code_len = len;
 	}
 }
 
@@ -159,4 +165,16 @@ bool is_in_huffman_code(two_bytes code, int index)
 		return true;
 	else
 		return false;
+}
+
+size_t read_bits(reader_t *reader, size_t num)
+{
+	size_t res = 0;
+	size_t i;
+	for (i = 0; i < num; i++) {
+		if (BitIsSet(reader->read_b, reader->read_i))
+			SetBit(res, i);
+		read_next_bit(reader);
+	}
+	return res;
 }

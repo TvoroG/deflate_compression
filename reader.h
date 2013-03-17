@@ -16,14 +16,26 @@ typedef struct _reader_t {
 	compress_t compress_type;
 } reader_t;
 
+typedef struct {
+	size_t code_len;
+	size_t code;
+} huffman_code;
+
 void init_reader(reader_t **reader);
 void delete_reader(reader_t **reader);
 void read_block_header(reader_t *reader);
 two_bytes decode_next_litlen(reader_t *reader);
 two_bytes decode_length(reader_t *reader, two_bytes lencode);
 two_bytes decode_distance(reader_t *reader);
+byte read_HLIT(reader_t *reader);
+byte read_HDIST(reader_t *reader);
+byte read_HCLEN(reader_t *reader);
+void read_code_length_for_code_length(reader_t *reader, 
+									  huffman_code cl_for_cl[],
+									  size_t size);
 void read_next_bit(reader_t *reader);
 void read_next_byte(reader_t *reader);
+size_t read_bits(reader_t *reader, size_t num);
 bool is_in_huffman_code(two_bytes code, int index);
 
 #endif
