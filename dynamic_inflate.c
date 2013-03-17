@@ -25,19 +25,26 @@ void dynamic_inflate(reader_t *reader)
 	size_t hdist = read_HDIST(reader) + 1;
 	size_t hclen = read_HCLEN(reader) + 4;
 
-	size_t cl_len = CODE_LENGTH_ORDER_SIZE;
+	size_t cl_len = CODE_LEN_ALPHABET_SIZE;
 	huffman_code cl_for_cl[cl_len];
 	memset(cl_for_cl, 0, sizeof(huffman_code) * cl_len);
 	read_code_length_for_code_length(reader, cl_for_cl, hclen);
 	build_huffman_codes(cl_for_cl, cl_len);
-	print_huffman_codes(cl_for_cl, cl_len);
-	/*
+
 	huffman_code litlen_codes[hlit];
 	memset(litlen_codes, 0, sizeof(huffman_code) * hlit);
-	read_code_length_for_litlen(reader, 
-								litlen_codes, hlit, 
-								cl_for_cl, hclen);
-	*/
+	read_code_length_for_alphabet(reader, 
+								  litlen_codes, hlit, 
+								  cl_for_cl, cl_len);
+	build_huffman_codes(litlen_codes, hlit);
+
+	huffman_code offset_codes[hdist];
+	memset(offset_codes, 0, sizeof(huffman_code) * hdist);
+	read_code_length_for_alphabet(reader, 
+								  offset_codes, hdist, 
+								  cl_for_cl, cl_len);
+	build_huffman_codes(offset_codes, hdist);
+	print_huffman_codes(offset_codes, hdist);
 }
 
 void build_huffman_codes(huffman_code huff_code[], size_t size)
@@ -47,13 +54,10 @@ void build_huffman_codes(huffman_code huff_code[], size_t size)
 	memset(bl_count, 0, sizeof(size_t) * bl_count_size);
 
 	count_number_of_codes(bl_count, huff_code, size);
-	print_massive(bl_count, bl_count_size);
 
 	size_t max_bits = get_max_bits(bl_count, bl_count_size);
 	size_t next_code[max_bits + 1];
 	find_numerical_value_of_smallest_code(next_code, bl_count,max_bits);
-	printf("next_code:\n");
-	print_massive(next_code, max_bits + 1);
 	assign_numerical_values_to_all_codes(next_code, huff_code, size);
 }
 
