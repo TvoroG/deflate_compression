@@ -170,9 +170,12 @@ void print_bytes(int b, size_t size)
 
 static void do_tests()
 {
-	test_init_reader();
-	test_read_header();
-	test_is_in_huffman_code();
-	test_decode_next_litlen();
-	printf("end of tests\n");
+	if (global_args.isdecompress) {
+		test_init_reader();
+		test_read_header();
+		test_is_in_huffman_code();
+		test_decode_next_litlen();
+/*	test_get_cyclic_queue();*/
+		printf("end of tests\n");
+	}
 }
