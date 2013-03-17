@@ -132,12 +132,27 @@ void read_next_bit(reader_t *reader)
 
 void read_code_length_for_code_length(reader_t *reader, 
 									  huffman_code cl_for_cl[],
-									  size_t size)
+									  size_t hclen)
 {
 	int i;
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < hclen; i++) {
 		byte len = read_bits(reader, CL_FOR_CL_LEN);
 		cl_for_cl[code_length_order[i]].code_len = len;
+	}
+}
+
+void read_code_length_for_litlen(reader_t *reader, 
+								 huffman_code litlen_codes[], 
+								 size_t hlit, 
+								 huffman_code cl_for_cl[], 
+								 size_t hclen)
+{
+	size_t num, clcl;
+	size_t code_len;
+	for (num = 0; num != hlit; ) {
+		code_len = 1;
+		for (clcl = 0; ;) {
+		}
 	}
 }
 

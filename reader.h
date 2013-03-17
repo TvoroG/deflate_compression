@@ -33,6 +33,11 @@ byte read_HCLEN(reader_t *reader);
 void read_code_length_for_code_length(reader_t *reader, 
 									  huffman_code cl_for_cl[],
 									  size_t size);
+void read_code_length_for_litlen(reader_t *reader, 
+								 huffman_code litlen_codes[], 
+								 size_t hlit, 
+								 huffman_code cl_for_cl[], 
+								 size_t hclen);
 void read_next_bit(reader_t *reader);
 void read_next_byte(reader_t *reader);
 size_t read_bits(reader_t *reader, size_t num);
