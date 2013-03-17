@@ -177,7 +177,7 @@ static void do_tests()
 		test_is_in_huffman_code();
 		test_decode_next_litlen();
 /*	test_get_cyclic_queue();*/
-//		test_huffman_codes();
+		test_huffman_codes();
 		printf("end of tests\n");
 	}
 }
