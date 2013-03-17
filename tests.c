@@ -7,6 +7,7 @@
 
 #include "deflate.h"
 #include "reader.h"
+#include "cyclic_queue.h"
 
 /* reader */
 void test_init_reader()
@@ -69,6 +70,31 @@ void test_decode_next_litlen()
 	assert(decode_next_litlen(reader) != 'p');
 	delete_reader(&reader);
 	printf("OK\n");
+}
+
+/* cyclic_queue */
+
+void test_get_cyclic_queue()
+{
+	int s = 7;
+	cyclic_queue *cq = new_cyclic_queue(s);
+	add_cyclic_queue(cq, 'D');
+	add_cyclic_queue(cq, 'e');
+	add_cyclic_queue(cq, 'f');
+	add_cyclic_queue(cq, 'l');
+	add_cyclic_queue(cq, 'a');
+	add_cyclic_queue(cq, 't');
+	add_cyclic_queue(cq, 'e');
+	print_cyclic_queue(cq);
+	byte bytes[s];
+	int len = 1;
+	int off = 1;
+	get_cyclic_queue(cq, bytes, len, off);
+	int i = 0;
+	for (i = 0; i < len; i++) {
+		printf("%c, ", bytes[i]);
+	}
+	printf("\n");
 }
 
 /* inflate */
