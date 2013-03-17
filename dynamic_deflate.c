@@ -71,6 +71,12 @@ static size_t write_pointer(two_bytes inter_res[],
 							size_t offset);
 
 
+void print_hf(huffman_tree *tree[], size_t size);
+void copy_length_and_codes(huffman_tree *length_tree[], 
+						   huffman_tree *len_tree[]);
+void copy_length_tree(huffman_tree *length_tree[], 
+					  huffman_tree *len_tree[]);
+
 /* definitions */
 
 void *dynamic_deflate(void *io_struct)
@@ -123,21 +129,29 @@ void *dynamic_deflate(void *io_struct)
 									  length_tree, 
 									  &length_size);
 
+
+	huffman_tree *len_tree[CODE_LEN_ALPHABET_SIZE];
+	init_tree(len_tree, CODE_LEN_ALPHABET_SIZE);
+
+	copy_length_tree(length_tree, len_tree);
 	generate_huffman_codes(length_tree, 
 						   CODE_LEN_ALPHABET_SIZE, 
 						   length_size);
+	copy_length_and_codes(length_tree, len_tree);
 
+
+//	print_hf(length_tree, CODE_LEN_ALPHABET_SIZE);
 	/* writing part */
 	write_dynamic_header(io_s);
 	write_HLIT_HDIST(io_s, max_litlen_code, max_off_code);
-	size_t HCLEN = write_HCLEN(io_s, length_tree);
+	size_t HCLEN = write_HCLEN(io_s, len_tree);
 
-	write_code_length_for_code_length(io_s, length_tree, HCLEN);
+	write_code_length_for_code_length(io_s, len_tree, HCLEN);
 	write_code_length_for_alphabet(io_s, litlen_tree, 
-								   length_tree, 
+								   len_tree, 
 								   max_litlen_code);
 	write_code_length_for_alphabet(io_s, off_tree,
-								   length_tree, 
+								   len_tree, 
 								   max_off_code);
 	write_compressed_data(io_s, inter_res, real_size, 
 						  litlen_tree, off_tree);
@@ -149,6 +163,7 @@ void *dynamic_deflate(void *io_struct)
 /*
 	delete_trees(litlen_tree, MAX_LITLEN_CODE + 1);
 	delete_trees(off_tree, MAX_OFF_CODE + 1);
+	delete_trees(len_tree, CODE_LEN_ALPHABET_SIZE);
 	delete_trees(length_tree, CODE_LEN_ALPHABET_SIZE);
 */
 
@@ -382,8 +397,10 @@ static void write_dynamic_header(io *io_s)
 static void write_HLIT_HDIST(io *io_s, two_bytes max_litlen_code, 
 							 two_bytes max_off_code)
 {
-	write_bits(io_s, max_litlen_code - 257, 5);
-	write_bits(io_s, max_off_code - 1, 5);
+	size_t hlit = max_litlen_code - 257;
+	size_t hdist = max_off_code - 1;
+	write_bits(io_s, hlit, 5);
+	write_bits(io_s, hdist, 5);
 }
 
 static size_t write_HCLEN(io *io_s, huffman_tree *length_tree[])
@@ -614,4 +631,40 @@ static void delete_trees(huffman_tree *tree[], size_t num)
 	for (i = 0; i < num; i++)
 		if (tree[i] != NULL)
 			delete_huffman_tree(&tree[i]);
+}
+
+void print_hf(huffman_tree *tree[], size_t size)
+{
+	size_t i;
+	for (i = 0; i < size; i++) {
+		printf("code = %d, len = %d, prob = %d, huff_code = ", 
+			   tree[i]->code, tree[i]->len, tree[i]->probability);
+		print_bytes(tree[i]->huff_code, sizeof(two_bytes));
+		printf("\n");
+	}
+}
+
+void copy_length_tree(huffman_tree *length_tree[], 
+					  huffman_tree *len_tree[])
+{
+	size_t i;
+	for (i = 0; i < CODE_LEN_ALPHABET_SIZE; i++) {
+		len_tree[i]->probability = length_tree[i]->probability;
+		len_tree[i]->code = length_tree[i]->code;
+		len_tree[i]->len = length_tree[i]->len;
+		len_tree[i]->huff_code = length_tree[i]->huff_code;
+		len_tree[i]->left = length_tree[i]->left;
+		len_tree[i]->right = length_tree[i]->right;
+	}
+}
+
+void copy_length_and_codes(huffman_tree *length_tree[], 
+						   huffman_tree *len_tree[])
+{
+	size_t i;
+	for (i = 0; i < CODE_LEN_ALPHABET_SIZE; i++) {
+		two_bytes code = length_tree[i]->code;
+		len_tree[code]->len = length_tree[i]->len;
+		len_tree[code]->huff_code = length_tree[i]->huff_code;
+	}
 }
