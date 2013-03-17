@@ -4,6 +4,7 @@
 #include "reader.h"
 
 void dynamic_inflate(reader_t *reader);
+/* for tests */
 void build_huffman_codes(huffman_code huff_code[], size_t size);
 void print_huffman_codes(huffman_code huff_code[], size_t size);
 
