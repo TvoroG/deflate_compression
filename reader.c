@@ -141,19 +141,51 @@ void read_code_length_for_code_length(reader_t *reader,
 	}
 }
 
-void read_code_length_for_litlen(reader_t *reader, 
-								 huffman_code litlen_codes[], 
-								 size_t hlit, 
-								 huffman_code cl_for_cl[], 
-								 size_t hclen)
+void read_code_length_for_alphabet(reader_t *reader, 
+								   huffman_code alphabet_codes[], 
+								   size_t alphabet_size, 
+								   huffman_code cl_for_cl[], 
+								   size_t cl_len)
 {
-	size_t num, clcl;
-	size_t code_len;
-	for (num = 0; num != hlit; ) {
-		code_len = 1;
-		for (clcl = 0; ;) {
+	size_t num;
+	for (num = 0; num < alphabet_size; ) {
+		size_t cl_i = read_next_huffman_code(reader, cl_for_cl, cl_len);
+		if (cl_i == 17) {
+			size_t repeat_times = 3 + read_bits(reader, 3);
+			num += repeat_times;
+		} else if (cl_i == 18) {
+			size_t repeat_times = 11 + read_bits(reader, 7);
+			num += repeat_times;
+		} else {
+			alphabet_codes[num].code_len = cl_i;
+			num++;
 		}
 	}
+}
+
+size_t read_next_huffman_code(reader_t *reader, 
+							  huffman_code cl_for_cl[], 
+							  size_t cl_len)
+{
+	size_t cl_i;
+	size_t code_len = 1;
+	size_t code = read_bits(reader, 1);
+	bool found = false;
+	while(!found) {
+		size_t clcl;
+		for (clcl = 0; clcl < cl_len && !found; clcl++) {
+			if (cl_for_cl[clcl].code_len == code_len && 
+				cl_for_cl[clcl].code == code) {
+				found = true;
+				cl_i = clcl;
+			}
+		}
+		if (!found) {
+			code_len++;
+			code = (code << 1) | read_bits(reader, 1);
+		}
+	}
+	return cl_i;
 }
 
 void read_next_byte(reader_t *reader)
