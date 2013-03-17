@@ -397,10 +397,10 @@ static void write_dynamic_header(io *io_s)
 static void write_HLIT_HDIST(io *io_s, two_bytes max_litlen_code, 
 							 two_bytes max_off_code)
 {
-	size_t hlit = max_litlen_code - 257;
-	size_t hdist = max_off_code - 1;
-	write_bits(io_s, hlit, 5);
-	write_bits(io_s, hdist, 5);
+	size_t hlit = max_litlen_code + 1;
+	size_t hdist = max_off_code + 1;
+	write_bits(io_s, hlit - 257, 5);
+	write_bits(io_s, hdist - 1, 5);
 }
 
 static size_t write_HCLEN(io *io_s, huffman_tree *length_tree[])
