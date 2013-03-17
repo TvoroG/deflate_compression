@@ -92,13 +92,11 @@ two_bytes decode_length(reader_t *reader, two_bytes lencode)
 	return len;
 }
 
-two_bytes decode_distance(reader_t *reader)
+two_bytes decode_distance(reader_t *reader, two_bytes offset_code)
 {
-	two_bytes offset_code = read_bits(reader, OFF_CODE_LEN);
-
 	size_t extra_bits_num = offset_codes[offset_code].extra_bits_num;
-	size_t extra_off = read_bits(reader, extra_bits_num);
 
+	size_t extra_off = read_bits(reader, extra_bits_num);
 	two_bytes off = offset_codes[offset_code].base_off + extra_off;
 	return off;
 }

@@ -26,7 +26,7 @@ void delete_reader(reader_t **reader);
 void read_block_header(reader_t *reader);
 two_bytes decode_next_litlen(reader_t *reader);
 two_bytes decode_length(reader_t *reader, two_bytes lencode);
-two_bytes decode_distance(reader_t *reader);
+two_bytes decode_distance(reader_t *reader, two_bytes offset_code);
 byte read_HLIT(reader_t *reader);
 byte read_HDIST(reader_t *reader);
 byte read_HCLEN(reader_t *reader);
