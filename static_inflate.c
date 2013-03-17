@@ -23,7 +23,8 @@ void static_inflate(reader_t *reader)
 			is_end_of_block = true;
 		else {
 			two_bytes length = decode_length(reader, litlen);
-			two_bytes distance = decode_distance(reader);
+			two_bytes offset_code = read_bits(reader, OFF_CODE_LEN);
+			two_bytes distance = decode_distance(reader, offset_code);
 			get_cyclic_queue(io_s->output, bytes, length, distance);
 			write_bytes(io_s, bytes, length);
 		}
