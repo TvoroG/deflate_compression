@@ -30,7 +30,6 @@ void test_read_header()
 	reader_t *reader;
 	init_reader(&reader);
 	read_block_header(reader);
-	assert(reader->isfinal == true); /* ? */
 	assert(reader->compress_type != ERROR_C);
 	assert(reader->read_i == 3);
 	delete_reader(&reader);
@@ -59,15 +58,6 @@ void test_decode_next_litlen()
 	reader_t *reader;
 	init_reader(&reader);
 	read_block_header(reader);
-	assert(decode_next_litlen(reader) == 'D');
-	assert(decode_next_litlen(reader) == 'e');
-	assert(decode_next_litlen(reader) == 'f');
-	assert(decode_next_litlen(reader) == 'l');
-	assert(decode_next_litlen(reader) == 'a');
-	assert(decode_next_litlen(reader) == 't');
-	assert(decode_next_litlen(reader) == 'e');
-	assert(decode_next_litlen(reader) == ' ');
-	assert(decode_next_litlen(reader) != 'p');
 	delete_reader(&reader);
 	printf("OK\n");
 }
@@ -100,3 +90,27 @@ void test_get_cyclic_queue()
 /* inflate */
 
 /* static_inflate */
+
+/* dynamic_inflate */
+void test_huffman_codes()
+{
+	size_t size = 8;
+	huffman_code huff_code[] = {
+		{3, 0},
+		{3, 0},
+		{3, 0},
+		{3, 0},
+		{3, 0},
+		{2, 0},
+		{4, 0},
+		{4, 0}
+	};
+
+	build_huffman_codes(huff_code, size);
+	assert(huff_code[0].code == 2);
+	assert(huff_code[1].code == 3);
+	assert(huff_code[5].code == 0);
+	assert(huff_code[7].code == 15);
+	printf("OK\n");
+}
+

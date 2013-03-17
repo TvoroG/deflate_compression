@@ -5,5 +5,6 @@ void test_init_reader();
 void test_read_header();
 void test_is_in_huffman_code();
 void test_decode_next_litlen();
+void test_huffman_codes();
 
 #endif
