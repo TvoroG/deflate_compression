@@ -10,8 +10,6 @@ static bool is_nocompression_type(reader_t *reader);
 static bool is_static_type(reader_t *reader);
 static bool is_dynamic_type(reader_t *reader);
 
-
-
 void inflate(reader_t *reader)
 {
 	do {
