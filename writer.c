@@ -114,3 +114,18 @@ void write_to_output(io *io_s, FILE *output)
 		size += last_size;
 	}
 }
+
+void write_data(io *io_s)
+{
+	byte buff[WRITE_BUFF_SIZE];
+	size_t count = 0, last_count, to_read;
+	while (count < io_s->block_size) {
+		if (io_s->block_size - count < WRITE_BUFF_SIZE)
+			to_read = io_s->block_size - count;
+		else
+			to_read = WRITE_BUFF_SIZE;
+		last_count = fread(buff, EL_SIZE, to_read, io_s->input);
+		fwrite(buff, EL_SIZE, last_count, io_s->output_file);
+		count += last_count;
+	}
+}
