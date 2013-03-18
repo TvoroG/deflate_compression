@@ -6,6 +6,7 @@
 #include "deflate.h"
 #include "static_inflate.h"
 #include "dynamic_inflate.h"
+#include "nocompress_inflate.h"
 
 static bool is_nocompression_type(reader_t *reader);
 static bool is_static_type(reader_t *reader);
@@ -16,7 +17,7 @@ void inflate(reader_t *reader)
 	do {
 		read_block_header(reader);
 		if (is_nocompression_type(reader)) {
-			printf("invoke nocomp\n");
+			nocompress_inflate(reader);
 		} else if (is_static_type(reader)) {
 			static_inflate(reader);
 		} else if (is_dynamic_type(reader)) {
