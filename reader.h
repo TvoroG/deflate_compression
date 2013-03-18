@@ -30,6 +30,7 @@ two_bytes decode_distance(reader_t *reader, two_bytes offset_code);
 byte read_HLIT(reader_t *reader);
 byte read_HDIST(reader_t *reader);
 byte read_HCLEN(reader_t *reader);
+two_bytes read_LEN_and_NLEN(reader_t *reader);
 void read_code_length_for_code_length(reader_t *reader, 
 									  huffman_code cl_for_cl[],
 									  size_t size);
@@ -44,6 +45,7 @@ size_t read_next_huffman_code(reader_t *reader,
 void read_next_bit(reader_t *reader);
 void read_next_byte(reader_t *reader);
 size_t read_bits(reader_t *reader, size_t num);
+void ignore_byte(reader_t *reader);
 bool is_in_huffman_code(two_bytes code, int index);
 
 #endif

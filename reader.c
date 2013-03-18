@@ -3,6 +3,7 @@
 #include "alphabets.h"
 
 #define CL_FOR_CL_LEN 3
+#define READ_BUFF_SIZE 1000
 
 void init_reader(reader_t **reader)
 {
@@ -119,6 +120,15 @@ byte read_HCLEN(reader_t *reader)
 	return hclen;
 }
 
+two_bytes read_LEN_and_NLEN(reader_t *reader)
+{
+	two_bytes len = read_bits(reader, 16);
+	two_bytes nlen = read_bits(reader, 16);
+	if (~len != nlen)
+		die("error when read LEN and NLEN\n");
+	return len;
+}
+
 void read_next_bit(reader_t *reader)
 {
 	reader->read_i++;
@@ -222,4 +232,12 @@ size_t read_bits(reader_t *reader, size_t num)
 		read_next_bit(reader);
 	}
 	return res;
+}
+
+void ignore_byte(reader_t *reader)
+{
+	if (reader->read_i > 0) {
+		reader->read_i = 0;
+		read_next_byte(reader);
+	}
 }
