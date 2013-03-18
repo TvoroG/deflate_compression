@@ -8,7 +8,6 @@
 
 void static_inflate(reader_t *reader)
 {
-/*	cyclic_queue *cqbuff = new_cyclic_queue(DICT_SIZE_Q);*/
 	io *io_s;
 	init_io(&io_s);
 	byte bytes[LEN_MAX];
