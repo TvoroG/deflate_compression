@@ -87,14 +87,21 @@ int main(int argc, char **argv)
 			size_dynamic = io_dynamic->result;
 
 			printf("ss = %d, sd = %d, sn = %d\n", size_static, size_dynamic, last_size);
+
 			if (size_dynamic <= size_static && 
 				size_dynamic < last_size) {
 				write_to_output(io_dynamic, output);
+				copy_last_byte(io_static, io_dynamic);
+				copy_last_byte(io_nocom, io_dynamic);
 			} else if (size_static <= size_dynamic && 
 					   size_static < last_size) {
 				write_to_output(io_static, output);
+				copy_last_byte(io_dynamic, io_static);
+				copy_last_byte(io_nocom, io_static);
 			} else {
 				nocompress_deflate(io_nocom);
+				copy_last_byte(io_static, io_nocom);
+				copy_last_byte(io_dynamic, io_nocom);
 			}
 		}
 
