@@ -47,5 +47,6 @@ void read_next_byte(reader_t *reader);
 size_t read_bits(reader_t *reader, size_t num);
 void ignore_byte(reader_t *reader);
 bool is_in_huffman_code(two_bytes code, int index);
+void unget_last_byte(reader_t *reader);
 
 #endif

@@ -22,8 +22,15 @@ void init_reader(reader_t **reader)
 
 void delete_reader(reader_t **reader)
 {
-	if ((*reader)->input != NULL)
+	if ((*reader)->input != NULL) {
 		fclose((*reader)->input);
+		(*reader)->input = NULL;
+	}
+
+	if ((*reader)->output != NULL) {
+		fclose((*reader)->output);
+		(*reader)->output = NULL;
+	}
 
 	free(*reader);
 	*reader = NULL;
@@ -124,8 +131,10 @@ two_bytes read_LEN_and_NLEN(reader_t *reader)
 {
 	two_bytes len = read_bits(reader, 16);
 	two_bytes nlen = read_bits(reader, 16);
-	if (~len != nlen)
+/*
+	if (len != ~nlen)
 		die("error when read LEN and NLEN\n");
+*/
 	return len;
 }
 
@@ -240,4 +249,10 @@ void ignore_byte(reader_t *reader)
 		reader->read_i = 0;
 		read_next_byte(reader);
 	}
+}
+
+void unget_last_byte(reader_t *reader)
+{
+	assert(reader->read_i == 0);
+	ungetc(reader->read_b, reader->input);
 }
