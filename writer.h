@@ -30,5 +30,6 @@ void init_io(io **io_s);
 void delete_io(io **io_s);
 void write_to_output(io *io_s, FILE *output);
 void write_data(io *io_s); /* nocompressed deflate */
+void copy_last_byte(io *io_to, io *io_from);
 
 #endif

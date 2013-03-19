@@ -70,6 +70,7 @@ void prepare_input_output(io *io_s)
 		die(NULL);
 
 	clear_cyclic_queue(io_s->output);
+	clear_cyclic_queue(io_s->cqdict);
 }
 
 size_t get_output_size(io *io_s)
@@ -94,8 +95,10 @@ void init_io(io **io_s)
 
 void delete_io(io **io_s)
 {
-	if ((*io_s)->input != NULL)
+	if ((*io_s)->input != NULL) {
 		fclose((*io_s)->input);
+		(*io_s)->input = NULL;
+	}
 
 	delete_cyclic_queue((*io_s)->output);
 	delete_cyclic_queue((*io_s)->cqdict);
@@ -128,4 +131,10 @@ void write_data(io *io_s)
 		fwrite(buff, EL_SIZE, last_count, io_s->output_file);
 		count += last_count;
 	}
+}
+
+void copy_last_byte(io *io_to, io *io_from)
+{
+	io_to->write_b = io_from->write_b;
+	io_to->write_i = io_from->write_i;
 }
