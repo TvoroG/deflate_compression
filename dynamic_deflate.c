@@ -139,7 +139,6 @@ void *dynamic_deflate(void *io_struct)
 						   length_size);
 	copy_length_and_codes(length_tree, len_tree);
 
-
 //	print_hf(length_tree, CODE_LEN_ALPHABET_SIZE);
 	/* writing part */
 	write_dynamic_header(io_s);
@@ -664,7 +663,9 @@ void copy_length_and_codes(huffman_tree *length_tree[],
 	size_t i;
 	for (i = 0; i < CODE_LEN_ALPHABET_SIZE; i++) {
 		two_bytes code = length_tree[i]->code;
-		len_tree[code]->len = length_tree[i]->len;
-		len_tree[code]->huff_code = length_tree[i]->huff_code;
+		if (code < CODE_LEN_ALPHABET_SIZE) {
+			len_tree[code]->len = length_tree[i]->len;
+			len_tree[code]->huff_code = length_tree[i]->huff_code;
+		}
 	}
 }
