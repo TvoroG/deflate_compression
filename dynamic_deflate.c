@@ -482,7 +482,7 @@ static void write_compressed_data(io *io_s,
 {
 	size_t i;
 	for (i = 0; i < real_size; ) {
-		if (inter_res[i] <= MAX_LITERAL) {
+		if (inter_res[i] <= END_OF_BLOCK) {
 			write_huffman_code(io_s, 
 							   litlen_tree[inter_res[i]]->huff_code, 
 							   litlen_tree[inter_res[i]]->len);
