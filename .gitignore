@@ -6,3 +6,4 @@ output
 *.h.gch
 *.mz
 run.sh
+*.html
