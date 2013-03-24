@@ -204,6 +204,7 @@ static size_t LZ77(two_bytes inter_res[], io *io_s)
 			count += last_count;
 		}
 	}
+	io_s->block_size = count;
 
 	delete_cyclic_queue(cqbuff);
 	inter_res[inter_res_i] = END_OF_BLOCK;

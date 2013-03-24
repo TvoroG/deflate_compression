@@ -53,6 +53,7 @@ void *static_deflate(void *io_struct)
 			count += last_count;
 		}
 	}
+	io_s->block_size = count;
 
 	write_end_of_block(io_s);
 	if (io_s->isfinal)
