@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 			io_dynamic->block_size = last_size;
 			io_nocom->offset = size;
 			io_nocom->block_size = last_size;
-			size += last_size;
+//			size += last_size;
 
 			rc1 = pthread_create(&thread_static, NULL, 
 								 &static_deflate, io_static);
@@ -93,15 +93,18 @@ int main(int argc, char **argv)
 				write_to_output(io_dynamic, output);
 				copy_last_byte(io_static, io_dynamic);
 				copy_last_byte(io_nocom, io_dynamic);
+				size += io_dynamic->block_size;
 			} else if (size_static <= size_dynamic && 
 					   size_static < last_size) {
 				write_to_output(io_static, output);
 				copy_last_byte(io_dynamic, io_static);
 				copy_last_byte(io_nocom, io_static);
+				size += io_static->block_size;
 			} else {
 				nocompress_deflate(io_nocom);
 				copy_last_byte(io_static, io_nocom);
 				copy_last_byte(io_dynamic, io_nocom);
+				size += io_nocom->block_size;
 			}
 		}
 
