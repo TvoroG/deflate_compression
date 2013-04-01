@@ -2,7 +2,6 @@
 
 #include "alphabets.h"
 
-#define CL_FOR_CL_LEN 3
 #define READ_BUFF_SIZE 1000
 
 void init_reader(reader_t **reader)
