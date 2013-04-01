@@ -7,3 +7,5 @@ output
 *.mz
 run.sh
 *.html
+con/
+test/
