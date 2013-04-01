@@ -30,20 +30,24 @@ void dynamic_inflate(reader_t *reader)
 	size_t hdist = read_HDIST(reader) + 1;
 	size_t hclen = read_HCLEN(reader) + 4;
 
+	/*printf("hclen = %d, hlit = %d, hdist = %d\n", hclen, hlit, hdist);*/
+
 	huffman_code litlen_codes[hlit];
 	huffman_code offset_codes[hdist];
 	read_alphabets(reader, 
 				   litlen_codes, hlit, 
 				   offset_codes, hdist, 
 				   hclen);
-	
+
 	io *io_s;
 	init_io(&io_s);
 	byte bytes[LEN_MAX];
 	size_t litlen;
 	bool is_end_of_block = false;
+	size_t block_size = 0;
 	while (!is_end_of_block) {
 		litlen = read_next_huffman_code(reader, litlen_codes, hlit);
+		block_size++;
 		if (litlen < END_OF_BLOCK)
 			write_byte(io_s, litlen);
 		else if (litlen == END_OF_BLOCK)
@@ -56,8 +60,10 @@ void dynamic_inflate(reader_t *reader)
 		    two_bytes distance = decode_distance(reader, offcode);
 			get_cyclic_queue(io_s->output, bytes, length, distance);
 			write_bytes(io_s, bytes, length);
+			block_size = block_size - 1 + length;
 		}
 	}
+	/*printf("block_size = %d\n", block_size);*/
 
 	write_to_output(io_s, reader->output);
 	delete_io(&io_s);
@@ -75,6 +81,7 @@ void read_alphabets(reader_t *reader,
 	read_code_length_for_code_length(reader, cl_for_cl, hclen);
 	build_huffman_codes(cl_for_cl, cl_len);
 
+	/*print_huffman_codes(cl_for_cl, cl_len);*/
 	/* read litlen alphabet */
 	memset(litlen_codes, 0, sizeof(huffman_code) * hlit);
 	read_code_length_for_alphabet(reader, 

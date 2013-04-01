@@ -117,6 +117,7 @@ void *dynamic_deflate(void *io_struct)
 										 MAX_OFF_CODE + 1, 
 										 off_size);
 
+
 	/* length tree*/
 	huffman_tree *length_tree[CODE_LEN_ALPHABET_SIZE];
 	init_tree(length_tree, CODE_LEN_ALPHABET_SIZE);
@@ -139,12 +140,14 @@ void *dynamic_deflate(void *io_struct)
 						   length_size);
 	copy_length_and_codes(length_tree, len_tree);
 
-//	print_hf(length_tree, CODE_LEN_ALPHABET_SIZE);
 	/* writing part */
 	write_dynamic_header(io_s);
 	write_HLIT_HDIST(io_s, max_litlen_code, max_off_code);
 	size_t HCLEN = write_HCLEN(io_s, len_tree);
 
+	printf("hclen = %d, hlit = %d, hdist = %d\n", HCLEN, max_litlen_code, max_off_code);
+
+	print_hf(len_tree, CODE_LEN_ALPHABET_SIZE);
 	write_code_length_for_code_length(io_s, len_tree, HCLEN);
 	write_code_length_for_alphabet(io_s, litlen_tree, 
 								   len_tree, 
@@ -423,7 +426,7 @@ static void write_code_length_for_code_length(io *io_s,
 	size_t i, len;
 	for (i = 0; i < HCLEN; i++) {
 		len = code_length_order[i];
-		write_bits(io_s, length_tree[len]->len, 3);
+		write_bits(io_s, length_tree[len]->len, CL_FOR_CL_LEN);
 	}
 }
 

@@ -42,6 +42,7 @@ extern size_t code_length_order[];
 #define REPEAT_18_END 138
 
 #define END_OF_BLOCK 256
+#define CL_FOR_CL_LEN 4
 
 two_bytes get_code_of_length(size_t);
 byte get_code_of_offset(size_t);
