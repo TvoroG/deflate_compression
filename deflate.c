@@ -56,7 +56,11 @@ int main(int argc, char **argv)
 		init_io(&io_dynamic);
 		init_io(&io_nocom);
 		io_nocom->output_file = output;
+
+		int k = 1;
 		while (size < st_size) {
+			printf("k = %d\n", k);
+			k++;
 			if (st_size - size >= BLOCK_SIZE) {
 				last_size = BLOCK_SIZE;
 			} else {
@@ -72,7 +76,6 @@ int main(int argc, char **argv)
 			io_dynamic->block_size = last_size;
 			io_nocom->offset = size;
 			io_nocom->block_size = last_size;
-//			size += last_size;
 
 			rc1 = pthread_create(&thread_static, NULL, 
 								 &static_deflate, io_static);
@@ -94,17 +97,20 @@ int main(int argc, char **argv)
 				copy_last_byte(io_static, io_dynamic);
 				copy_last_byte(io_nocom, io_dynamic);
 				size += io_dynamic->block_size;
+				printf("block_size = %d, size = %d\n", io_dynamic->block_size, size);
 			} else if (size_static <= size_dynamic && 
 					   size_static < last_size) {
 				write_to_output(io_static, output);
 				copy_last_byte(io_dynamic, io_static);
 				copy_last_byte(io_nocom, io_static);
 				size += io_static->block_size;
+				printf("block_size = %d, size = %d\n", io_static->block_size, size);
 			} else {
 				nocompress_deflate(io_nocom);
 				copy_last_byte(io_static, io_nocom);
 				copy_last_byte(io_dynamic, io_nocom);
 				size += io_nocom->block_size;
+				printf("block_size = %d, size = %d\n", io_nocom->block_size, size);
 			}
 		}
 
@@ -186,8 +192,13 @@ static void do_tests()
 		test_read_header();
 		test_is_in_huffman_code();
 		test_decode_next_litlen();
-/*	test_get_cyclic_queue();*/
+		/*test_get_cyclic_queue();*/
 		test_huffman_codes();
+		test_new_bst();
+		test_get_substr_len_bst();
+		/*test_insert_bst();*/
+		test_delete_bst();
+		test_search_bst();
 		printf("end of tests\n");
 	}
 }

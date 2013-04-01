@@ -8,6 +8,7 @@
 #include "deflate.h"
 #include "reader.h"
 #include "cyclic_queue.h"
+#include "bst.h"
 
 /* reader */
 void test_init_reader()
@@ -111,6 +112,74 @@ void test_huffman_codes()
 	assert(huff_code[1].code == 3);
 	assert(huff_code[5].code == 0);
 	assert(huff_code[7].code == 15);
+	printf("OK\n");
+}
+
+/* bst */
+void test_new_bst()
+{
+	bst_t *bst = new_bst();
+	assert(bst == NULL);
+	printf("OK\n");
+}
+
+void test_get_substr_len_bst()
+{
+	assert(get_substr_len_bst("wowop", "wowgo") == 3);
+	assert(get_substr_len_bst("gohome", "gohomeolol") == 6);
+	assert(get_substr_len_bst("bestgame", "best") == 4);
+	assert(get_substr_len_bst("deflate", "deflate") == 7);
+	assert(get_substr_len_bst("", "omg") == 0);
+	printf("OK\n");
+}
+
+void test_insert_bst()
+{
+	bst_t *bst = new_bst();
+	insert_bst(&bst, "wow", 10);
+	insert_bst(&bst, "aaa", 10);
+	insert_bst(&bst, "bbb", 5);
+	insert_bst(&bst, "yyy", 10);
+	insert_bst(&bst, "000", 99);
+	insert_bst(&bst, "AAA", 99);
+	insert_bst(&bst, "###", 99);
+	insert_bst(&bst, "", 0);
+	insert_bst(&bst, "xxx", 99);
+	insert_bst(&bst, "zzz", 99);
+	print_bst(bst);
+	printf("OK\n");
+}
+
+void test_delete_bst()
+{
+	bst_t *bst = new_bst();
+	insert_bst(&bst, "wow", 10);
+	insert_bst(&bst, "aaa", 10);
+	insert_bst(&bst, "bbb", 5);
+	insert_bst(&bst, "yyy", 10);
+	insert_bst(&bst, "000", 99);
+	delete_bst(&bst);
+	print_bst(bst);
+	assert(bst == NULL);
+	printf("OK\n");
+}
+
+void test_search_bst()
+{
+	bst_t *bst = new_bst();
+	insert_bst(&bst, "wow", 10);
+	insert_bst(&bst, "aaa", 10);
+	insert_bst(&bst, "bbb", 5);
+	insert_bst(&bst, "linux&windows", 45);
+	insert_bst(&bst, "yyy", 10);
+	insert_bst(&bst, "000", 99);
+	size_t len;
+	bst_t *res = search_bst(bst, "bb", 2, &len);
+	assert(len == 2);
+	assert(res->offset == 5);
+	res = search_bst(bst, "linux", 5, &len);
+	assert(len == 5);
+	assert(res->offset == 45);
 	printf("OK\n");
 }
 
