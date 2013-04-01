@@ -1,7 +1,7 @@
 CFLAGS=-g -Wall -Isrc -Wall -Wextra
 
-all: deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o inflate.o reader.o tests.o static_inflate.o dynamic_inflate.o nocompress_inflate.o
-	cc deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o inflate.o reader.o tests.o static_inflate.o dynamic_inflate.o nocompress_inflate.o -pthread -o deflate
+all: deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o inflate.o reader.o tests.o static_inflate.o dynamic_inflate.o nocompress_inflate.o bst.o
+	cc deflate.o static_deflate.o dynamic_deflate.o nocompress_deflate.o writer.o alphabets.o cyclic_queue.o huffman_tree.o inflate.o reader.o tests.o static_inflate.o dynamic_inflate.o nocompress_inflate.o bst.o -pthread -o deflate
 
 deflate.o: deflate.c deflate.h
 	cc -c deflate.h deflate.c
@@ -48,6 +48,9 @@ dynamic_inflate.o: dynamic_inflate.c dynamic_inflate.h
 
 nocompress_inflate.o: nocompress_inflate.c nocompress_inflate.h
 	cc -c nocompress_inflate.c nocompress_inflate.h
+
+bst.o: bst.h bst.c
+	cc -c bst.h bst.c
 
 tests.o: tests.h tests.c
 	cc -c tests.c tests.h
