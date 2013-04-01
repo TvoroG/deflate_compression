@@ -14,13 +14,18 @@ static bool is_dynamic_type(reader_t *reader);
 
 void inflate(reader_t *reader)
 {
+	int k = 1;
 	do {
+		printf("k = %d\n", k++);
 		read_block_header(reader);
 		if (is_nocompression_type(reader)) {
+			printf("nocom\n");
 			nocompress_inflate(reader);
 		} else if (is_static_type(reader)) {
+			printf("static\n");
 			static_inflate(reader);
 		} else if (is_dynamic_type(reader)) {
+			printf("dynamic\n");
 			dynamic_inflate(reader);
 		} else {
 			die("error type in inflate\n");
