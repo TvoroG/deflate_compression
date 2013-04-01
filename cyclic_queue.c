@@ -8,11 +8,13 @@ cyclic_queue *new_cyclic_queue(size_t len)
 	cq->s = 0;
 	cq->e = 0;
 	cq->len = len;
+	cq->bst = new_bst();
 	return cq;
 }
 
 void delete_cyclic_queue(cyclic_queue *cq)
 {
+	delete_bst(&cq->bst);
 	free(cq->queue);
 	free(cq);
 }
