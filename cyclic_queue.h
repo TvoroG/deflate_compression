@@ -9,10 +9,11 @@ typedef struct {
 	size_t s;
 	size_t e;
 	size_t len;
+	bool is_bst;
 	bst_t *bst;
 } cyclic_queue;
 
-cyclic_queue *new_cyclic_queue(size_t);
+cyclic_queue *new_cyclic_queue(size_t, bool);
 void delete_cyclic_queue(cyclic_queue *);
 void add_cyclic_queue(cyclic_queue *, byte);
 void push_back_cyclic_queue(cyclic_queue *, byte *, size_t);
