@@ -85,8 +85,8 @@ void init_io(io **io_s)
 	(*io_s)->input = NULL;
 	(*io_s)->input_name = global_args.input_name;
 
-	(*io_s)->output = new_cyclic_queue(2 * BLOCK_SIZE);
-	(*io_s)->cqdict = new_cyclic_queue(DICT_SIZE_Q);
+	(*io_s)->output = new_cyclic_queue(2 * BLOCK_SIZE, false);
+	(*io_s)->cqdict = new_cyclic_queue(DICT_SIZE_Q, true);
 
 	(*io_s)->write_b = 0;
 	(*io_s)->write_i = 0;

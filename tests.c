@@ -68,7 +68,7 @@ void test_decode_next_litlen()
 void test_get_cyclic_queue()
 {
 	int s = 7;
-	cyclic_queue *cq = new_cyclic_queue(s);
+	cyclic_queue *cq = new_cyclic_queue(s, false);
 	add_cyclic_queue(cq, 'D');
 	add_cyclic_queue(cq, 'e');
 	add_cyclic_queue(cq, 'f');
@@ -176,10 +176,10 @@ void test_search_bst()
 	size_t len;
 	bst_t *res = search_bst(bst, "bb", 2, &len);
 	assert(len == 2);
-	assert(res->offset == 5);
+	assert(res->ptr == 5);
 	res = search_bst(bst, "linux", 5, &len);
 	assert(len == 5);
-	assert(res->offset == 45);
+	assert(res->ptr == 45);
 	printf("OK\n");
 }
 
