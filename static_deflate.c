@@ -21,7 +21,7 @@ void *static_deflate(void *io_struct)
 {
 	io *io_s = (io *) io_struct;
 	prepare_input_output(io_s);
-	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q);
+	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q, false);
 
 	write_static_header(io_s);
 

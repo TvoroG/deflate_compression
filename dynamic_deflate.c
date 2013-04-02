@@ -176,7 +176,7 @@ void *dynamic_deflate(void *io_struct)
 static size_t LZ77(two_bytes inter_res[], io *io_s)
 {
 	byte buff[LEN_MAX];
-	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q);
+	cyclic_queue *cqbuff = new_cyclic_queue(LEN_SIZE_Q, false);
 	size_t count = fread(buff, EL_SIZE, LEN_MAX, io_s->input);
 	push_back_cyclic_queue(cqbuff, buff, count);
 
