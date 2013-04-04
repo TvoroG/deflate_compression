@@ -11,6 +11,7 @@
 #include "huffman_tree.h"
 #include "alphabets.h"
 #include "writer.h"
+#include "bst.h"
 
 /* internal declarations */
 /* compression functions */
@@ -145,9 +146,9 @@ void *dynamic_deflate(void *io_struct)
 	write_HLIT_HDIST(io_s, max_litlen_code, max_off_code);
 	size_t HCLEN = write_HCLEN(io_s, len_tree);
 
-	printf("hclen = %d, hlit = %d, hdist = %d\n", HCLEN, max_litlen_code, max_off_code);
+//	printf("hclen = %d, hlit = %d, hdist = %d\n", HCLEN, max_litlen_code, max_off_code);
 
-	print_hf(len_tree, CODE_LEN_ALPHABET_SIZE);
+//	print_hf(len_tree, CODE_LEN_ALPHABET_SIZE);
 	write_code_length_for_code_length(io_s, len_tree, HCLEN);
 	write_code_length_for_alphabet(io_s, litlen_tree, 
 								   len_tree, 

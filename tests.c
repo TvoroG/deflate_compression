@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "deflate.h"
 #include "reader.h"
@@ -88,6 +89,64 @@ void test_get_cyclic_queue()
 	printf("\n");
 }
 
+void test_new_search_cyclic_queue()
+{
+	int s = 7;
+	cyclic_queue *cq = new_cyclic_queue(s, true);
+	byte *b = malloc(10);
+	strcpy(b, "deflateeg");
+	push_back_cyclic_queue(cq, b, 9);
+	assert(cq->bst->ptr_s == 3);
+	delete_cyclic_queue(cq);
+	printf("OK\n");
+}
+
+void test_index_to_ptr()
+{
+	int s = 7;
+	cyclic_queue *cq = new_cyclic_queue(s, false);
+	add_cyclic_queue(cq, 'D');
+	add_cyclic_queue(cq, 'e');
+	add_cyclic_queue(cq, 'f');
+	add_cyclic_queue(cq, 'l');
+	add_cyclic_queue(cq, 'a');
+	add_cyclic_queue(cq, 't');
+	add_cyclic_queue(cq, 'e');
+	add_cyclic_queue(cq, 'e');
+	add_cyclic_queue(cq, 'e');
+	print_cyclic_queue(cq);
+	assert(index_to_ptr(cq, 0) == 4);
+	assert(index_to_ptr(cq, 1) == 5);
+	assert(index_to_ptr(cq, 5) == 2);
+	printf("OK\n");
+}
+
+void test_ptr_to_index()
+{
+	int s = 7;
+	cyclic_queue *cq = new_cyclic_queue(s, false);
+	add_cyclic_queue(cq, 'D');
+	add_cyclic_queue(cq, 'e');
+	add_cyclic_queue(cq, 'f');
+	add_cyclic_queue(cq, 'l');
+	add_cyclic_queue(cq, 'a');
+	add_cyclic_queue(cq, 't');
+	add_cyclic_queue(cq, 'e');
+	add_cyclic_queue(cq, 'e');
+	add_cyclic_queue(cq, 'e');
+	print_cyclic_queue(cq);
+	assert(ptr_to_index(cq, index_to_ptr(cq, 0)) == 0);
+	assert(ptr_to_index(cq, index_to_ptr(cq, 1)) == 1);
+	assert(ptr_to_index(cq, index_to_ptr(cq, 3)) == 3);
+	assert(ptr_to_index(cq, index_to_ptr(cq, 5)) == 5);
+
+	assert(index_to_ptr(cq, ptr_to_index(cq, 0)) == 0);
+	assert(index_to_ptr(cq, ptr_to_index(cq, 1)) == 1);
+	assert(index_to_ptr(cq, ptr_to_index(cq, 4)) == 4);
+	assert(index_to_ptr(cq, ptr_to_index(cq, 5)) == 5);
+	printf("OK\n");
+}
+
 /* inflate */
 
 /* static_inflate */
@@ -133,6 +192,7 @@ void test_get_substr_len_bst()
 	printf("OK\n");
 }
 
+/*
 void test_insert_bst()
 {
 	bst_t *bst = new_bst();
@@ -146,10 +206,14 @@ void test_insert_bst()
 	insert_bst(&bst, "", 0);
 	insert_bst(&bst, "xxx", 99);
 	insert_bst(&bst, "zzz", 99);
+	clean_bst(&bst, 1000, 6);
+//	clean_bst(&bst, 55, 100);
 	print_bst(bst);
 	printf("OK\n");
 }
+*/
 
+/*
 void test_delete_bst()
 {
 	bst_t *bst = new_bst();
@@ -163,7 +227,8 @@ void test_delete_bst()
 	assert(bst == NULL);
 	printf("OK\n");
 }
-
+*/
+/*
 void test_search_bst()
 {
 	bst_t *bst = new_bst();
@@ -172,7 +237,7 @@ void test_search_bst()
 	insert_bst(&bst, "bbb", 5);
 	insert_bst(&bst, "linux&windows", 45);
 	insert_bst(&bst, "yyy", 10);
-	insert_bst(&bst, "000", 99);
+	insert_bst(&bst, "000", 99);	
 	size_t len;
 	bst_t *res = search_bst(bst, "bb", 2, &len);
 	assert(len == 2);
@@ -182,4 +247,4 @@ void test_search_bst()
 	assert(res->ptr == 45);
 	printf("OK\n");
 }
-
+*/

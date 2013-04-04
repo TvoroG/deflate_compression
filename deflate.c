@@ -77,6 +77,8 @@ int main(int argc, char **argv)
 			io_nocom->offset = size;
 			io_nocom->block_size = last_size;
 
+			io_dynamic->isfinal = true;
+
 			rc1 = pthread_create(&thread_static, NULL, 
 								 &static_deflate, io_static);
 			rc2 = pthread_create(&thread_dynamic, NULL, 
@@ -112,6 +114,7 @@ int main(int argc, char **argv)
 				size += io_nocom->block_size;
 				printf("block_size = %d, size = %d\n", io_nocom->block_size, size);
 			}
+			die("end\n");
 		}
 
 		delete_io(&io_static);
@@ -187,7 +190,10 @@ void print_bytes(int b, size_t size)
 
 static void do_tests()
 {
-	if (global_args.isdecompress) {
+//	test_index_to_ptr();
+//	test_ptr_to_index();
+//	die(NULL);
+	if (false/*global_args.isdecompress*/) {
 		test_init_reader();
 		test_read_header();
 		test_is_in_huffman_code();
@@ -199,6 +205,11 @@ static void do_tests()
 		/*test_insert_bst();*/
 		test_delete_bst();
 		test_search_bst();
+		//test_new_search_cyclic_queue();
+		test_index_to_ptr();
+		test_insert_bst();
+		test_ptr_to_index();
+		test_index_to_ptr();
 		printf("end of tests\n");
 	}
 }

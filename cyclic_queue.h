@@ -9,7 +9,7 @@ typedef struct {
 	size_t s;
 	size_t e;
 	size_t len;
-	bool is_bst;
+	bool is_dict;
 	bst_t *bst;
 } cyclic_queue;
 
@@ -32,5 +32,8 @@ size_t read_cyclic_queue(cyclic_queue *cq, byte buff[],
 void get_cyclic_queue(cyclic_queue *cq, byte *buff, 
 					  two_bytes length, two_bytes offset);
 void print_cyclic_queue(cyclic_queue *);
+
+size_t index_to_ptr(cyclic_queue *cq, size_t index);
+size_t ptr_to_index(cyclic_queue *cq, size_t ptr);
 
 #endif
