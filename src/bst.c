@@ -3,7 +3,8 @@
 #include <string.h>
 #include <assert.h>
 
-static bst_t *new_node_bst(byte *word, size_t index_s, size_t index_e);
+static bst_t *new_node_bst(byte *word, size_t word_len, 
+						   size_t index_s, size_t index_e);
 static void inner_search_bst(bst_t *tree, byte *word, size_t word_size,
 							 size_t start_index, size_t end_index,
 							 bst_t **res, size_t *len);
@@ -20,23 +21,27 @@ void delete_bst(bst_t **tree)
 	if (*tree != NULL) {
 		delete_bst(&(*tree)->left);
 		delete_bst(&(*tree)->right);
-		//free((*tree)->word);
+		free((*tree)->word);
 		free(*tree);
 		*tree = NULL;
 	}
 }
 
-void insert_bst(bst_t **tree, byte *word, size_t index_s, size_t index_e)
+void insert_bst(bst_t **tree, byte *word, size_t word_len,
+				size_t index_s, size_t index_e)
 {
 	if (*tree != NULL) {
-		int cmp = strcmp(word, (*tree)->word);
+		int cmp = memcmp(word, (*tree)->word, 
+						 Min((*tree)->word_len, word_len));
 		if (cmp > 0) {
-			insert_bst(&(*tree)->right, word, index_s, index_e);
+			insert_bst(&(*tree)->right, word, word_len, 
+					   index_s, index_e);
 		} else if (cmp <= 0) {
-			insert_bst(&(*tree)->left, word, index_s, index_e);
+			insert_bst(&(*tree)->left, word, word_len, 
+					   index_s, index_e);
 		}
 	} else {
-		*tree = new_node_bst(word, index_s, index_e);
+		*tree = new_node_bst(word, word_len, index_s, index_e);
 	}
 }
 
@@ -70,10 +75,12 @@ static void inner_search_bst(bst_t *tree, byte *word, size_t word_size,
 			inner_search_bst(tree->left, word, word_size, 
 							 start_index, end_index,
 							 res, len);
-		} else if (!tree->is_old) {
-			size_t length = get_substr_len_bst(tree->word, word);
+		} else {
+			size_t length = get_substr_len_bst(tree->word, 
+											   tree->word_len, 
+											   word, word_size);
 			assert(length >= 1);
-			if (length > *len) {
+			if (length > *len && !tree->is_old) {
 				*len = length;
 				*res = tree;
 			}
@@ -90,14 +97,14 @@ static void inner_search_bst(bst_t *tree, byte *word, size_t word_size,
 				} else {
 					die("error in search_bst\n");
 				}
+			} else if (tree->is_old) {
+				inner_search_bst(tree->left, word, word_size,
+								 start_index, end_index,
+								 res, len);
+				inner_search_bst(tree->right, word, word_size, 
+								 start_index, end_index,
+								 res, len);
 			}
-		} else {
-			inner_search_bst(tree->left, word, word_size, 
-							 start_index, end_index,
-							 res, len);
-			inner_search_bst(tree->right, word, word_size, 
-							 start_index, end_index,
-							 res, len);
 		}
 	}
 }
@@ -125,18 +132,18 @@ void delete_node_bst(bst_t **tree)
 {
 	assert(*tree != NULL);
 	if ((*tree)->left == NULL && (*tree)->right == NULL) {
-//		free((*tree)->word);
+		free((*tree)->word);
 		free(*tree);
 		*tree = NULL;
 	} else if ((*tree)->left != NULL && (*tree)->right == NULL) {
 		bst_t *old_node = *tree;
 		*tree = (*tree)->left;
-//		free(old_node->word);
+		free(old_node->word);
 		free(old_node);
 	} else if ((*tree)->left == NULL && (*tree)->right != NULL) {
 		bst_t *old_node = *tree;
 		*tree = (*tree)->right;
-//		free(old_node->word);
+		free(old_node->word);
 		free(old_node);
 	} else {
 		bst_t **node = get_most_left_node_bst(&(*tree)->right);
@@ -147,19 +154,20 @@ void delete_node_bst(bst_t **tree)
 		bst_t *old_node = *tree;
 		*tree = *node;
 		*node = NULL;
-//		free(old_node->word);
+		free(old_node->word);
 		free(old_node);
 	}
 }
 
-void set_bst(bst_t **tree, byte *new_word, 
+void set_bst(bst_t **tree, byte *new_word, size_t word_len,
 			 size_t index_s, size_t index_e)
 {
 	if (*tree == NULL) {
-		*tree = new_node_bst(new_word, index_s, index_e);
+		*tree = new_node_bst(new_word, word_len, index_s, index_e);
 	} else {
 		free((*tree)->word);
 		(*tree)->word = new_word;
+		(*tree)->word_len = word_len;
 		(*tree)->index_s = index_s;
 		(*tree)->index_e = index_e;
 	}
@@ -184,13 +192,16 @@ static void inner_print_bst(bst_t *tree, size_t k)
 	inner_print_bst(tree->right, k + 1);
 }
 
-size_t get_substr_len_bst(byte *str1, byte *str2)
+size_t get_substr_len_bst(byte *str1, size_t str1_len, 
+						  byte *str2, size_t str2_len)
 {
-	size_t len = 0;
-	while ((*str1 == *str2) && (*str1 != '\0') && (*str2 != '\0')) {
+	size_t len = 0, len1 = 0, len2 = 0;
+	while ((*str1 == *str2) && (len1 < str1_len) && (len2 < str2_len)) {
 		str1++;
 		str2++;
 		len++;
+		len1++;
+		len2++;
 	}
 	return len;
 }
@@ -203,12 +214,14 @@ static bst_t **get_most_left_node_bst(bst_t **tree)
 	return bst;
 }
 
-static bst_t *new_node_bst(byte *word, size_t index_s, size_t index_e)
+static bst_t *new_node_bst(byte *word, size_t word_len, 
+						   size_t index_s, size_t index_e)
 {
 	bst_t *node = (bst_t *) malloc(sizeof(bst_t));
 	node->word = word;
 	node->index_s = index_s;
 	node->index_e = index_e;
+	node->word_len = word_len;
 	node->is_old = false;
 	node->left = NULL;
 	node->right = NULL;

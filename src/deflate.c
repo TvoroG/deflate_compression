@@ -77,19 +77,20 @@ int main(int argc, char **argv)
 			io_nocom->offset = size;
 			io_nocom->block_size = last_size;
 
-			io_dynamic->isfinal = true;
-
+			io_static->isfinal = true;
+			rc2 = 0;
 			rc1 = pthread_create(&thread_static, NULL, 
 								 &static_deflate, io_static);
-			rc2 = pthread_create(&thread_dynamic, NULL, 
-								 &dynamic_deflate, io_dynamic);
+//			rc2 = pthread_create(&thread_dynamic, NULL, 
+//								 &dynamic_deflate, io_dynamic);
 
 			if (rc1 || rc2)
 				die("thread creation failed");
 			pthread_join(thread_static, NULL);
-			pthread_join(thread_dynamic, NULL);
+//			pthread_join(thread_dynamic, NULL);
 			size_static = io_static->result;
 			size_dynamic = io_dynamic->result;
+			size_dynamic = 50000;
 
 			printf("ss = %d, sd = %d, sn = %d\n", size_static, size_dynamic, last_size);
 

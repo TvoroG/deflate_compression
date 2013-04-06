@@ -1,10 +1,8 @@
 #include "static_inflate.h"
 
-#include "reader.h"
 #include "cyclic_queue.h"
 #include "alphabets.h"
 #include "writer.h"
-
 
 void static_inflate(reader_t *reader)
 {

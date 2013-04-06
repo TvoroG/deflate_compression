@@ -37,6 +37,7 @@ void write_byte(io *io_s, byte b)
 
 void write_bytes(io *io_s, byte b[], size_t size)
 {
+	assert(io_s->write_i == 0);
 	size_t i;
 	for (i = 0; i < size; i++) {
 		add_cyclic_queue(io_s->output, b[i]);

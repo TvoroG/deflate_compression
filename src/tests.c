@@ -96,7 +96,7 @@ void test_new_search_cyclic_queue()
 	byte *b = malloc(10);
 	strcpy(b, "deflateeg");
 	push_back_cyclic_queue(cq, b, 9);
-	assert(cq->bst->ptr_s == 3);
+	assert(cq->bst->index_s == 3);
 	delete_cyclic_queue(cq);
 	printf("OK\n");
 }
@@ -184,11 +184,11 @@ void test_new_bst()
 
 void test_get_substr_len_bst()
 {
-	assert(get_substr_len_bst("wowop", "wowgo") == 3);
-	assert(get_substr_len_bst("gohome", "gohomeolol") == 6);
-	assert(get_substr_len_bst("bestgame", "best") == 4);
-	assert(get_substr_len_bst("deflate", "deflate") == 7);
-	assert(get_substr_len_bst("", "omg") == 0);
+	assert(get_substr_len_bst("wowop",5, "wowgo",5) == 3);
+	assert(get_substr_len_bst("gohome", 6,"gohomeolol",10) == 6);
+	assert(get_substr_len_bst("bestgame",8, "best",4) == 4);
+	assert(get_substr_len_bst("deflate",7, "deflate",7) == 7);
+	assert(get_substr_len_bst("", 0,"omg",3) == 0);
 	printf("OK\n");
 }
 
