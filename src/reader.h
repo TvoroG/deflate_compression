@@ -34,11 +34,11 @@ two_bytes read_LEN_and_NLEN(reader_t *reader);
 void read_code_length_for_code_length(reader_t *reader, 
 									  huffman_code cl_for_cl[],
 									  size_t size);
-void read_code_length_for_litlen(reader_t *reader, 
-								 huffman_code alphabet_codes[], 
-								 size_t alphabet_size, 
-								 huffman_code cl_for_cl[], 
-								 size_t hclen);
+void read_code_length_for_alphabet(reader_t *reader, 
+								   huffman_code alphabet_codes[], 
+								   size_t alphabet_size, 
+								   huffman_code cl_for_cl[], 
+								   size_t cl_len);
 size_t read_next_huffman_code(reader_t *reader, 
 							  huffman_code cl_for_cl[], 
 							  size_t cl_len);

@@ -182,6 +182,7 @@ void test_new_bst()
 	printf("OK\n");
 }
 
+/*
 void test_get_substr_len_bst()
 {
 	assert(get_substr_len_bst("wowop",5, "wowgo",5) == 3);
@@ -191,6 +192,7 @@ void test_get_substr_len_bst()
 	assert(get_substr_len_bst("", 0,"omg",3) == 0);
 	printf("OK\n");
 }
+*/
 
 /*
 void test_insert_bst()

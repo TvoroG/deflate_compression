@@ -23,7 +23,8 @@ cyclic_queue *new_cyclic_queue(size_t len, bool is_dict)
 
 void delete_cyclic_queue(cyclic_queue *cq)
 {
-	delete_bst(&cq->bst);
+	if (cq->is_dict)
+		delete_bst(&cq->bst);
 	free(cq->queue);
 	free(cq);
 }
@@ -92,22 +93,9 @@ void move_front_cyclic_queue(cyclic_queue *from,
 		res = pop_front_cyclic_queue(from);
 		add_cyclic_queue(to, res);
 	}
-/*	
-	if (to->is_dict) {
-		size_t cq_size = size_cyclic_queue(to);
-		if (cq_size >= to->len - 1) {
-			int end_ptr = to->e - 1;
-			if (end_ptr < 0)
-				end_ptr = to->len - 1;
-			clean_bst(&to->bst, 
-					  index_to_ptr(to, to->s), 
-					  index_to_ptr(to, end_ptr));
-		}
-	}
-*/
 }
 
-/*
+#ifndef FAST_DEFLATE
 void search_cyclic_queue(cyclic_queue *dict, 
 						 cyclic_queue *buff, 
 						 size_t *offset, 
@@ -144,7 +132,8 @@ void search_cyclic_queue(cyclic_queue *dict,
 	*offset = maxoffset;
 	*length = maxlen;
 }
-*/
+
+#else
 
 void search_cyclic_queue(cyclic_queue *dict, 
 						 cyclic_queue *buff, 
@@ -158,37 +147,26 @@ void search_cyclic_queue(cyclic_queue *dict,
 	read_cyclic_queue(buff, word, 0, buff_size);
 	word[buff_size] = '\0';
 
-	int end_ptr = dict->e - 1;
-	if (end_ptr < 0)
-		end_ptr = dict->len - 1;
-
 	bst_t *ans_bst = search_bst(dict->bst, word, 
-								dict->s, end_ptr, 
+								dict->s, dict->e, 
 								buff_size, length);
 
 	if (*length >= 3) {
 		size_t index = ans_bst->index_s;
-		if (index < dict->e)
+		if (index < dict->e) {
 			*offset = dict->e - index;
-		else
+		} else if (index > dict->e) {
 			*offset = dict->len - index + dict->e;
-/*
-		byte bu[*length];
-		get_cyclic_queue(dict, bu, *length, *offset);
-		printf("%.*s\noff=%d\n", *length, bu, *offset);
-		size_t i;
-		for (i = 0; i < *length; i++) {
-			print_bytes(bu[i], 1);
-			printf("\n");
+		} else {
+			*offset = 0;
+			*length = 0;
 		}
-		printf("-----------------------\n");
-*/
 	} else {
 		*offset = 0;
 		*length = 0;
 	}
 }
-
+#endif
 
 size_t size_cyclic_queue(cyclic_queue *cq)
 {
@@ -264,17 +242,6 @@ void get_cyclic_queue(cyclic_queue *cq, byte *buff,
 		if (i >= cq->len)
 			i = 0;
 	}
-
-/*
-//	printf("%.*s\noff=%d\n---------\n", length, buff, offset);
-	printf("%.*s\noff=%d\n", length, buff, offset);
-	size_t j;
-	for (j = 0; j < length; j++) {
-		print_bytes(buff[j], 1);
-		printf("\n");
-	}
-	printf("-----------------------\n");
-*/
 }
 
 void print_cyclic_queue(cyclic_queue *cq)
@@ -311,11 +278,6 @@ static void set_bst_cyclic_queue(cyclic_queue *cq, size_t count)
 					   ptr_to_index(cq, start), 
 					   ptr_to_index(cq, cq_size - i));
 			assert(num_read == LEN_MAX);
-//			if (cq_size >= cq->len - 1) {
-//				printf("%s\ns=%d, e=%d\n--------\n", word, 
-//					   ptr_to_index(cq, start),
-//					   ptr_to_index(cq, cq_size - i));
-//			}
 		}
 	} else {
 		byte *word = malloc(cq_size);
@@ -323,6 +285,7 @@ static void set_bst_cyclic_queue(cyclic_queue *cq, size_t count)
 		set_bst(&cq->bst, word, cq_size,
 				ptr_to_index(cq, 0), 
 				ptr_to_index(cq, cq_size));
+		assert(num_read == cq_size);
 	}
 }
 

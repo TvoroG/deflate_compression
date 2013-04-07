@@ -16,6 +16,7 @@
 
 #include "tests.h"
 static void do_tests();
+int getopt(int argc, char * const argv[], const char *optstring);
 
 static char *ext = ".mz";
 static char *usage = "usage: deflate [-d] intput [output]";
@@ -28,7 +29,6 @@ int main(int argc, char **argv)
 	
 	do_tests();
 
-//	input = fopen(global_args.input_name, "r");
 	FILE *output = fopen(global_args.output_name, "w");
 	if (output == NULL)
 		die(NULL);
@@ -47,8 +47,6 @@ int main(int argc, char **argv)
 		pthread_t thread_static, thread_dynamic;
 
 		size_t last_size, size = 0;
-
-		void *size_static_p, *size_dynamic_p;
 		size_t size_static, size_dynamic;
 
 		io *io_static, *io_dynamic, *io_nocom;
@@ -59,8 +57,7 @@ int main(int argc, char **argv)
 
 		int k = 1;
 		while (size < st_size) {
-			printf("k = %d\n", k);
-			k++;
+			printf("k = %d\n", k++);
 			if (st_size - size >= BLOCK_SIZE) {
 				last_size = BLOCK_SIZE;
 			} else {
@@ -77,20 +74,17 @@ int main(int argc, char **argv)
 			io_nocom->offset = size;
 			io_nocom->block_size = last_size;
 
-			io_static->isfinal = true;
-			rc2 = 0;
 			rc1 = pthread_create(&thread_static, NULL, 
 								 &static_deflate, io_static);
-//			rc2 = pthread_create(&thread_dynamic, NULL, 
-//								 &dynamic_deflate, io_dynamic);
+			rc2 = pthread_create(&thread_dynamic, NULL, 
+								 &dynamic_deflate, io_dynamic);
 
 			if (rc1 || rc2)
 				die("thread creation failed");
 			pthread_join(thread_static, NULL);
-//			pthread_join(thread_dynamic, NULL);
+			pthread_join(thread_dynamic, NULL);
 			size_static = io_static->result;
 			size_dynamic = io_dynamic->result;
-			size_dynamic = 50000;
 
 			printf("ss = %d, sd = %d, sn = %d\n", size_static, size_dynamic, last_size);
 
@@ -115,7 +109,6 @@ int main(int argc, char **argv)
 				size += io_nocom->block_size;
 				printf("block_size = %d, size = %d\n", io_nocom->block_size, size);
 			}
-			die("end\n");
 		}
 
 		delete_io(&io_static);
@@ -136,6 +129,7 @@ void get_args(int argc, char **argv)
 
 	char *opt_string = "d";
 	int opt = 0;
+	extern int optind;
 	opt = getopt(argc, argv, opt_string);
 	while (opt != -1) {
 		if (opt == 'd') {
@@ -191,10 +185,7 @@ void print_bytes(int b, size_t size)
 
 static void do_tests()
 {
-//	test_index_to_ptr();
-//	test_ptr_to_index();
-//	die(NULL);
-	if (false/*global_args.isdecompress*/) {
+	if (global_args.isdecompress) {
 		test_init_reader();
 		test_read_header();
 		test_is_in_huffman_code();
@@ -202,13 +193,12 @@ static void do_tests()
 		/*test_get_cyclic_queue();*/
 		test_huffman_codes();
 		test_new_bst();
-		test_get_substr_len_bst();
+		/*test_get_substr_len_bst();*/
 		/*test_insert_bst();*/
-		test_delete_bst();
-		test_search_bst();
-		//test_new_search_cyclic_queue();
+		/*test_delete_bst();*/
+		/*test_new_search_cyclic_queue();*/
 		test_index_to_ptr();
-		test_insert_bst();
+		/*test_insert_bst();*/
 		test_ptr_to_index();
 		test_index_to_ptr();
 		printf("end of tests\n");

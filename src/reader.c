@@ -55,7 +55,6 @@ void read_block_header(reader_t *reader)
 two_bytes decode_next_litlen(reader_t *reader)
 {
 	two_bytes tb = 0;
-	two_bytes base_code, last_code;
 	int i;
 
 	/* read first seven bits */

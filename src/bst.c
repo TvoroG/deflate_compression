@@ -62,8 +62,7 @@ static void inner_search_bst(bst_t *tree, byte *word, size_t word_size,
 							 bst_t **res, size_t *len)
 {
 	if (tree != NULL) {
-		if (tree->index_s <= end_index && tree->index_e >= end_index 
-			&& !tree->is_old) {
+		if (start_index > tree->index_s && !tree->is_old) {
 			tree->is_old = true;
 		}
 
@@ -75,17 +74,17 @@ static void inner_search_bst(bst_t *tree, byte *word, size_t word_size,
 			inner_search_bst(tree->left, word, word_size, 
 							 start_index, end_index,
 							 res, len);
-		} else {
+		} else if (!tree->is_old) {
 			size_t length = get_substr_len_bst(tree->word, 
 											   tree->word_len, 
 											   word, word_size);
 			assert(length >= 1);
-			if (length > *len && !tree->is_old) {
+			if (length > *len) {
 				*len = length;
 				*res = tree;
 			}
 				
-			if ((length < word_size) && (length < LEN_MAX)) {
+			if ((length < word_size) && (length < tree->word_len)) {
 				if (word[length] > tree->word[length]) {
 					inner_search_bst(tree->right, word, word_size, 
 									 start_index, end_index,
@@ -97,14 +96,14 @@ static void inner_search_bst(bst_t *tree, byte *word, size_t word_size,
 				} else {
 					die("error in search_bst\n");
 				}
-			} else if (tree->is_old) {
-				inner_search_bst(tree->left, word, word_size,
-								 start_index, end_index,
-								 res, len);
-				inner_search_bst(tree->right, word, word_size, 
-								 start_index, end_index,
-								 res, len);
 			}
+		} else {
+			inner_search_bst(tree->left, word, word_size,
+							 start_index, end_index,
+							 res, len);
+			inner_search_bst(tree->right, word, word_size, 
+							 start_index, end_index,
+							 res, len);
 		}
 	}
 }
