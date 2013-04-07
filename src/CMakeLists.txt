@@ -21,7 +21,7 @@ bst.c
 tests.c)
 
 find_package (Threads)
-add_definitions (-Wall -pedantic)
+add_definitions (-Wall -pedantic -std=c99 -DFAST_DEFLATE)
 
 add_executable (${PROJECT} ${deflate_SRCS})
 target_link_libraries (${PROJECT} ${CMAKE_THREAD_LIBS_INIT})
